@@ -3,9 +3,9 @@ package org.ja;
 public class ThreadSafetyTest implements  Runnable {
 	public void run() {
 		StringBufferVsBuilder bb=new StringBufferVsBuilder();
-		bb.bufferTest(1000);
-		bb.builderTest(1000);
-		bb.stringTest(1000);
+		bb.bufferTest(10000);
+		bb.builderTest(10000);
+		bb.stringTest(10000);
 		
 	}
 
