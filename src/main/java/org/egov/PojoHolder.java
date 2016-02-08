@@ -120,5 +120,35 @@ public class PojoHolder {
 		return controllerName;
 	}
 
+	public List<String> findSearchFields(String fullFileName) {
+			List<String> searchFieldList=new ArrayList<String>();
+			try {
+				BufferedReader f=new BufferedReader(new FileReader(new File(fullFileName)));
+				
+				String readLine = f.readLine();
+				while (readLine!=null)
+				{
+					if(readLine.contains("//search"))
+							{
+							readLine=f.readLine();
+							searchFieldList.add(readLine);
+							}
+					else
+					{
+						readLine=f.readLine();
+					}
+							
+				}
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return searchFieldList;
+		}
+	
+
 
 }

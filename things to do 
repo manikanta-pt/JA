@@ -1,0 +1,19 @@
+1. add to labels.properties if and only if not present  --done
+2. add the model in view/edit/update methods --done
+3. view/edit/update will work on code if not present it will take uuid,else it will take id --done
+4. title.validity.view should be added in labels.properties --done
+5. Move the new form under the pojo folder in jsp-- done
+6. add model in new form --- done
+7. Name the url properly  --done 
+8. add new url called /pojo/new --done
+9. add result jsp  --done 
+10. add result action  --done 
+11. change method of edit view result to get  --done
+12. add   <form:errors path="day" cssClass="error-msg" /> for form fields
+
+controller name of result in small letter--done
+name of the include jsp--done
+add result action  -done
+add result messaage in properties  --not required
+
+

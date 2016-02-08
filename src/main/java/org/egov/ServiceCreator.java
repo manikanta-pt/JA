@@ -6,9 +6,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
-import java.util.List;
 
- 
+
 
 
 public class ServiceCreator {
@@ -17,7 +16,7 @@ public class ServiceCreator {
 	public static void main(String[] args) {
 		
 		ServiceCreator rc=new ServiceCreator();
-		rc.createService("org.egov.tl.domain.entity.FeeMatrixDetail");
+		rc.createService("org.egov.commons.CFinancialYear");
 	}
 
 	public void	createService(String fullyQualifiedName)
@@ -94,11 +93,21 @@ public class ServiceCreator {
 		writer.write(Utility.TAB+"public List<"+pojo.getSimpleName()+"> findAll() {"+Utility.NEWLINE);
 		writer.write(Utility.TAB+" return "+Utility.toCamelCase(repositoryName)+".findAll(new Sort(Sort.Direction.ASC, \"name\"));"+Utility.NEWLINE);
 		writer.write(Utility.TAB+"   }"+Utility.NEWLINE);
-
+		Field fname=null;
+		try {
+			fname = pojo.getDeclaredField("name");
+		} catch (NoSuchFieldException e) {
+						
+		} catch (SecurityException e) {
+			
+		}
+		if(fname!=null)
+		{
 		writer.write(Utility.TAB+"public "+pojo.getSimpleName()+" "+"findByName(String name){"+Utility.NEWLINE);
-		writer.write(Utility.TAB+"return"+Utility.toCamelCase(repositoryName)+".findByName(name);"+Utility.NEWLINE);
+		writer.write(Utility.TAB+"return "+Utility.toCamelCase(repositoryName)+".findByName(name);"+Utility.NEWLINE);
 		writer.write(Utility.TAB+"}");
 		writer.write(Utility.NEWLINE);
+		}
 		Field code=null;
 		try {
 			code = pojo.getDeclaredField("code");
@@ -110,10 +119,24 @@ public class ServiceCreator {
 		if(code!=null)
 		{
 			writer.write(Utility.TAB+"public "+pojo.getSimpleName()+" "+"findByCode(String code){"+Utility.NEWLINE);
-			writer.write(Utility.TAB+"return"+Utility.toCamelCase(repositoryName)+".findByCode(code);"+Utility.NEWLINE);
+			writer.write(Utility.TAB+"return "+Utility.toCamelCase(repositoryName)+".findByCode(code);"+Utility.NEWLINE);
 			writer.write(Utility.TAB+"}");
 			writer.write(Utility.NEWLINE);
 		}
+		
+		writer.write(Utility.TAB+"public "+pojo.getSimpleName()+" "+"findOne(Long id){"+Utility.NEWLINE);
+		writer.write(Utility.TAB+"return "+Utility.toCamelCase(repositoryName)+".findOne(id);"+Utility.NEWLINE);
+		writer.write(Utility.TAB+"}");
+		writer.write(Utility.NEWLINE);
+		
+		//this part will create for generic search 
+		writer.write(Utility.TAB+"public List<"+pojo.getSimpleName()+"> "+"search("+pojo.getSimpleName()+" "+Utility.toCamelCase(pojo.getSimpleName())+"){"+Utility.NEWLINE);
+		writer.write(Utility.TAB+"return "+Utility.toCamelCase(repositoryName)+".findAll();"+Utility.NEWLINE);
+		writer.write(Utility.TAB+"}");
+		writer.write(Utility.NEWLINE);
+		
+		
+
 		
 		writer.write("}");
 		writer.flush();

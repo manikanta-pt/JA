@@ -1,8 +1,11 @@
 package org.egov;
 
 import static org.egov.Utility.NEWLINE;
-import static org.egov.Utility.TAB;
 
+import static org.egov.Utility.TAB;
+import static org.egov.Utility.QUOTE;
+
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -11,23 +14,19 @@ import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.List;
+import java.util.RandomAccess;
 
-import org.springframework.context.MessageSource;
+import org.egov.tl.entity.Validity;
 
-public class ControllerCreator {
+public class SearchCreator {
 
 	PojoHolder pojoHolder=new PojoHolder();
-	StringBuilder imports=new StringBuilder();
-	StringBuilder services=new StringBuilder();
-	StringBuilder findAll=new StringBuilder();
-	StringBuilder constants=new StringBuilder();
-	StringBuilder methods=new StringBuilder();
-	StringBuilder urls=new StringBuilder();
 	public static void main(String[] args) {
 
-		ControllerCreator rc=new ControllerCreator();
-		rc.createController("org.egov.tl.entity.Validity");
+		SearchCreator rc=new SearchCreator();
+		rc.createController("org.egov.tl.domain.entity.Validity");
 
 	}
 
@@ -35,13 +34,16 @@ public class ControllerCreator {
 	{	
 		try {
 			pojoHolder.loadPojo(fullyQualifiedName);
-			
+			StringBuilder imports=new StringBuilder();
+			StringBuilder services=new StringBuilder();
+			StringBuilder findAll=new StringBuilder();
+			StringBuilder constants=new StringBuilder();
+			StringBuilder methods=new StringBuilder();
+			StringBuilder urls=new StringBuilder();
 
-			
-			
 
 			Class<?> pojo = pojoHolder.getPojo();
-			List<String> findAjaxCalls = pojoHolder.findAjaxCalls(Utility.SRCFOLDER+"/"+pojo.getCanonicalName().replace(".", "/")+".java");
+			List<String> searchFieldList = pojoHolder.findSearchFields(Utility.SRCFOLDER+"/"+pojo.getCanonicalName().replace(".", "/")+".java");
 			
 			String[] readImports = pojoHolder.readImports(Utility.SRCFOLDER+"/"+pojo.getCanonicalName().replace(".", "/")+".java");
 			for(String s: readImports)
@@ -57,13 +59,13 @@ public class ControllerCreator {
 					if(s.contains("annotation"))
 						continue;
 				
-				//	imports.append("import "+s+";"+NEWLINE);	
-				//	imports.append("import "+pojoHolder.getServiceFor(s)+";"+NEWLINE);
+					imports.append("import "+s+";"+NEWLINE);	
+					imports.append("import "+pojoHolder.getServiceFor(s)+";"+NEWLINE);
 					String entityName=s.substring(s.lastIndexOf(".")+1);
 					String service=entityName+"Service";
-				//	services.append("@Autowired"+NEWLINE+TAB+"private final " +service+" "+Utility.toCamelCase(service)+";"+NEWLINE);
-					//findAll.append(TAB+"public List<"+entityName+"> findAll"+entityName+"(){"+NEWLINE);
-					//findAll.append(TAB+"return "+Utility.toCamelCase(service)+".findAll();"+NEWLINE+TAB+"}"+NEWLINE);
+					services.append("@Autowired"+NEWLINE+TAB+"private final " +service+" "+Utility.toCamelCase(service)+";"+NEWLINE);
+					findAll.append(TAB+"public List<"+entityName+"> findAll"+entityName+"(){"+NEWLINE);
+					findAll.append(TAB+"return "+Utility.toCamelCase(service)+".findAll();"+NEWLINE+TAB+"}"+NEWLINE);
 
 				}
 			}
@@ -96,9 +98,9 @@ public class ControllerCreator {
 				boolean ajax=false;
 				//Deprecated annotation = type.getAnnotation(Deprecated.class);
 				//boolean annotationPresent = type.isAnnotationPresent(Deprecated.class);
-				if(!findAjaxCalls.isEmpty())
+				if(!searchFieldList.isEmpty())
 				{
-					for(String s:findAjaxCalls)
+					for(String s:searchFieldList)
 					{
 						if(s.contains(type.getSimpleName()))
 						{
@@ -145,8 +147,6 @@ public class ControllerCreator {
 					.a(";")
 					.a(NEWLINE).str());
 					
-					
-					
 					imports.append(new SB()
 					.a("import ")
 					.a(serviceFor)
@@ -178,7 +178,7 @@ public class ControllerCreator {
 			.a(NEWLINE)
 			.a(NEWLINE)
 			.str());
-			imports.append("import java.util.List;"+NEWLINE);
+			
 			imports.append("import org.springframework.stereotype.Controller;"+NEWLINE);
 			imports.append("import org.springframework.ui.Model;"+NEWLINE);
 			imports.append("import org.springframework.validation.BindingResult;"+NEWLINE);
@@ -187,9 +187,6 @@ public class ControllerCreator {
 			imports.append("import org.springframework.web.bind.annotation.RequestMapping;"+NEWLINE);
 			imports.append("import org.springframework.web.bind.annotation.RequestMethod;"+NEWLINE);
 			imports.append("import javax.validation.Valid;"+NEWLINE);
-			imports.append("import org.springframework.web.bind.annotation.ResponseBody;"+NEWLINE);
-			imports.append("import org.springframework.web.servlet.mvc.support.RedirectAttributes;"+NEWLINE);
-			imports.append("import org.springframework.http.MediaType;");
 
 			Package package1 = pojo.getPackage();
 			String name = package1.getName();
@@ -202,7 +199,7 @@ public class ControllerCreator {
 			File f = new File(Utility.CONTROLLER_FOLDER+"/"+packageName.replace(".", "/"));
 
 			if (f.exists()) {
-				//System.out.println("file exists");
+				System.out.println("file exists");
 			}else
 			{
 				f.mkdirs();
@@ -229,9 +226,6 @@ public class ControllerCreator {
 			writer.write("import org.springframework.beans.factory.annotation.Autowired;"+NEWLINE);
 			writer.write("import org.springframework.stereotype.Controller;"+NEWLINE);
 			writer.write("import org.springframework.web.bind.annotation.RequestMapping;"+NEWLINE);
-			writer.write("import com.google.gson.Gson;"+Utility.NEWLINE);
-			writer.write("import com.google.gson.GsonBuilder;"+Utility.NEWLINE);
-			
 			writer.write(imports.toString());
 			writer.write(NEWLINE);
 			writer.write(NEWLINE);
@@ -239,7 +233,7 @@ public class ControllerCreator {
 			writer.write("@Controller "+NEWLINE);
 
 			writer.write(new SB().a("@RequestMapping(\"/")
-					.a(pojo.getSimpleName().toLowerCase())
+					.a(Utility.toCamelCase(pojo.getSimpleName()))
 					.a("\")").a(NEWLINE)
 					.str());
 
@@ -255,7 +249,6 @@ public class ControllerCreator {
 			constants.append("private final static String "+pojo.getSimpleName().toUpperCase()+"_RESULT=\""+pojo.getSimpleName().toLowerCase()+"-result\";"+NEWLINE);
 			constants.append("private final static String "+pojo.getSimpleName().toUpperCase()+"_EDIT=\""+pojo.getSimpleName().toLowerCase()+"-edit\";"+NEWLINE);
 			constants.append("private final static String "+pojo.getSimpleName().toUpperCase()+"_VIEW=\""+pojo.getSimpleName().toLowerCase()+"-view\";"+NEWLINE);
-			constants.append("private final static String "+pojo.getSimpleName().toUpperCase()+"_SEARCH=\""+pojo.getSimpleName().toLowerCase()+"-search\";"+NEWLINE);
 
 			writer.write(constants.toString());
 
@@ -269,8 +262,6 @@ public class ControllerCreator {
 			.a(Utility.toCamelCase(serviceName))
 			.a(";")
 			.a(NEWLINE).str());
-			
-			writer.write("@Autowired \n private MessageSource messageSource;");
 
 			writer.write(services.toString());//these will be from imports 
 			writer.write(findAll.toString());
@@ -313,8 +304,8 @@ public class ControllerCreator {
 					.a("; }")
 					.a(NEWLINE)
 					.a(Utility.toCamelCase(serviceName)+".create("+Utility.toCamelCase(pojo.getSimpleName())+");"+NEWLINE)
-					.a("redirectAttrs.addFlashAttribute(\"message\", messageSource.getMessage(\"msg."+Utility.toCamelCase(pojo.getSimpleName())+".success\",null,null));"+NEWLINE)
-					.a("return \"redirect:/"+pojo.getSimpleName().toLowerCase()+"/result/\"+"+Utility.toCamelCase(pojo.getSimpleName())+".getId();")
+					.a("redirectAttrs.addFlashAttribute(\"message\", \"msg."+Utility.toCamelCase(pojo.getSimpleName())+".success\");"+NEWLINE)
+					.a("return \"redirect:/"+Utility.toCamelCase(pojo.getSimpleName())+"/result/\"+"+Utility.toCamelCase(pojo.getSimpleName())+".getId();")
 					.a(NEWLINE) 
 					.a("}")
 					.a(NEWLINE)
@@ -391,7 +382,7 @@ public class ControllerCreator {
 					.a("}")
 					.a(Utility.toCamelCase(serviceName)+".update("+Utility.toCamelCase(pojo.getSimpleName())+");"+NEWLINE)
 					.a("redirectAttrs.addFlashAttribute(\"message\", \"msg."+Utility.toCamelCase(pojo.getSimpleName())+".success\");"+NEWLINE)
-					.a("return \"redirect:/"+pojo.getSimpleName().toLowerCase()+"/result/\"+"+Utility.toCamelCase(pojo.getSimpleName())+".getId();")
+					.a("return \"redirect:/"+Utility.toCamelCase(pojo.getSimpleName())+"/result/\"+"+Utility.toCamelCase(pojo.getSimpleName())+".getId();")
 					.a(NEWLINE) 
 					.a("}")
 					.a(NEWLINE)
@@ -435,7 +426,7 @@ public class ControllerCreator {
 
 		SB result=new SB();	
 	result.a("@RequestMapping(value = \"/result/{"+viewField+"}\", method = RequestMethod.GET)"+NEWLINE+
-			      " public String result(@PathVariable(\""+viewField+"\") final Long id,Model model){"+NEWLINE);
+			      "public String result(@PathVariable(\""+viewField+"\") final Long id,Model model){"+NEWLINE);
 	
 	if(viewField.equalsIgnoreCase("code"))
 	{
@@ -446,15 +437,13 @@ public class ControllerCreator {
 		result.a(pojo.getSimpleName()+" "+Utility.toCamelCase(pojo.getSimpleName()) +"  = "+Utility.toCamelCase(serviceName) +
 				".findOne(id);");
 	}
-	
 	result.a("model.addAttribute(\""+Utility.toCamelCase(pojo.getSimpleName())+"\", "+Utility.toCamelCase(pojo.getSimpleName())+");"+NEWLINE+
-				   "return "+pojo.getSimpleName().toUpperCase()+"_RESULT;}");
+				   "return VALIDITY_RESULT;}");
 			
+
+
+
 				methods.append(result.str());
-				
-				
-				
-				createSearch(pojoHolder);
 				writer.write(methods.toString());
 				writer.write(NEWLINE);
 				writer.write("}");
@@ -464,24 +453,17 @@ public class ControllerCreator {
 				File sqlf = new File(Utility.SQL_FOLDER);
 
 				if (sqlf.exists()) {
-					//System.out.println("file exists");
+					System.out.println("file exists");
 				}else
 				{
 					sqlf.mkdirs();
 				}
-				System.out.println(pojo.getSimpleName());
 				String urlName = pojo.getSimpleName().toLowerCase();				
 				PrintWriter sqlWriter = new PrintWriter(Utility.SQL_FOLDER+"/" +Utility.CONTEXT+"_"+pojo.getSimpleName()+"_actions_DML.sql", "UTF-8");
-				sqlWriter.append(Utility.createUrls("New-"+pojo.getSimpleName(),"/"+urlName+"/new", "true", "1"));
-				sqlWriter.append(Utility.createUrls("Create-"+pojo.getSimpleName(),"/"+urlName+"/create", "false", "1"));
+				sqlWriter.append(Utility.createUrls("Create-"+pojo.getSimpleName(),"/"+urlName+"/create", "true", "1"));
 				sqlWriter.append(Utility.createUrls("Update-"+pojo.getSimpleName(),"/"+urlName+"/update",  "false", "1"));
 				sqlWriter.append(Utility.createUrls("View-"+pojo.getSimpleName(),"/"+urlName+"/view",  "false", "1"));
 				sqlWriter.append(Utility.createUrls("Edit-"+pojo.getSimpleName(),"/"+urlName+"/edit",  "false", "1"));
-				sqlWriter.append(Utility.createUrls("Result-"+pojo.getSimpleName(),"/"+urlName+"/result",  "false", "1"));
-				sqlWriter.append(Utility.createUrls("Search and View-"+pojo.getSimpleName(),"/"+urlName+"/"+Utility.BEFORE_SEARCH_URL+"/view",  "true", "2"));
-				sqlWriter.append(Utility.createUrls("Search and Edit-"+pojo.getSimpleName(),"/"+urlName+"/"+Utility.BEFORE_SEARCH_URL+"/edit",  "true", "3"));
-				sqlWriter.append(Utility.createUrls("Search and View Result-"+pojo.getSimpleName(),"/"+urlName+"/"+Utility.SEARCH_URL+"/view",  "false", "1"));
-				sqlWriter.append(Utility.createUrls("Search and Edit Result-"+pojo.getSimpleName(),"/"+urlName+"/"+Utility.SEARCH_URL+"/edit",  "false", "1"));
 				sqlWriter.append(urls.toString());
 				sqlWriter.flush();
 				sqlWriter.close();
@@ -498,54 +480,6 @@ public class ControllerCreator {
 			}
 
 		}
-
-	public void createSearch(PojoHolder pojoHolder2) {
-		SB beforeSearch=new SB();
-		
-		methods.append(NEWLINE+NEWLINE);
-		String simpleName = pojoHolder2.getPojo().getSimpleName();
-		beforeSearch.a("@RequestMapping(value =  \"/"+Utility.BEFORE_SEARCH_URL+"/{mode}\", method = RequestMethod.GET)").a(NEWLINE)
-		.a("public String "+ Utility.BEFORE_SEARCH_URL+"(@PathVariable(\"mode\") final String  mode,Model model)\n{").a(NEWLINE)
-		.a(simpleName+" "+Utility.toCamelCase(simpleName)+"  = new "+simpleName+"();").a(NEWLINE)
-		.a("prepareNewForm(model);").a(NEWLINE)
-		.a("model.addAttribute(\""+Utility.toCamelCase(simpleName)+"\","+Utility.toCamelCase(simpleName)+");").a(NEWLINE)
-		.a("return "+simpleName.toUpperCase()+"_SEARCH;").a(NEWLINE)
-		.a("\n}").a(NEWLINE).a(NEWLINE);
-		
-		methods.append(beforeSearch.str());
-		
-		SB search=new SB();
-		search.a("@RequestMapping(value = \"/"+Utility.SEARCH_URL+"/{mode}\", method = RequestMethod.POST,produces = MediaType.TEXT_PLAIN_VALUE)")
-		.a(NEWLINE)
-		.a("public @ResponseBody String "+Utility.SEARCH_URL+"(@PathVariable(\"mode\") final String mode, Model model,@ModelAttribute final "+simpleName+" "
-		+Utility.toCamelCase(simpleName)+" ) \n{")
-		.a(NEWLINE)
-		.a("List<"+simpleName+"> searchResultList = "+Utility.toCamelCase(simpleName)+"Service.search("+Utility.toCamelCase(simpleName)+");")
-		.a(NEWLINE)
-		.a("String result = new StringBuilder(\"{ \\\"data\\\":\").append(toSearchResultJson(searchResultList)).append(\"}\").toString();")
-		.a(NEWLINE)
-		.a("return result;\n}")	.a(NEWLINE);
-		methods.append(search.str());
-		
-		
-		//this part is for JsonConverson
-		SB jsonCon=new SB();
-		jsonCon.a("public Object toSearchResultJson(final Object object)\n {")
-			.a(Utility.NEWLINE)
-			.a("final GsonBuilder gsonBuilder = new GsonBuilder();")
-			.a(Utility.NEWLINE)
-			.a("final Gson gson = gsonBuilder.registerTypeAdapter("+simpleName+".class,new "+simpleName+"JsonAdaptor()).create();")
-			.a(Utility.NEWLINE)
-			.a("final String json = gson.toJson(object);")
-			.a(Utility.NEWLINE)
-			.a("return json;\n}");
-	
-		methods.append(jsonCon.str());
-		
-		
-		
-		
-	}
 
 	private void createAjaxActions(String fullyQualifiedName,
 			StringBuilder urls, Class<?> type) throws IOException,
