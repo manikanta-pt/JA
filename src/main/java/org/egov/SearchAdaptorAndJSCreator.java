@@ -27,7 +27,7 @@ public class SearchAdaptorAndJSCreator {
 
 		SearchAdaptorAndJSCreator rc=new SearchAdaptorAndJSCreator();
 
-		rc.create("org.egov.commons.Relation");
+		rc.create("org.egov.commons.Fund");
 
 	}
 	public void create(String pojoName)
@@ -44,7 +44,7 @@ public class SearchAdaptorAndJSCreator {
 	{
 		try {
 			String urltosearch="",fontoptions="",sorting="",columnsandtitle="",urluptopojo="";
-			urltosearch="\"/"+Utility.CONTEXT+"/"+objectName.toLowerCase()+"/"+Utility.SEARCH_URL+"/\""+ "+$('#mode').val()"+"/";
+			urltosearch="\"/"+Utility.CONTEXT+"/"+objectName.toLowerCase()+"/"+Utility.SEARCH_URL+"/\""+ "+$('#mode').val()";
 
 			Class<?> pojo = pojoHolder.getPojo();
 
@@ -209,18 +209,20 @@ public class SearchAdaptorAndJSCreator {
 
 				if(egFieldType.equals("ignore"))	
 					continue;
+				methods.a("if("+objectName+".get"+Utility.toSentenceCase(f.getName())+"()!=null)"+NEWLINE);
 				if(egFieldType.equals("d"))	
 					methods.a(" jsonObject.addProperty(\""+f.getName()+"\", "+objectName+".get"+Utility.toSentenceCase(f.getName())+"());"+NEWLINE);
-				else if(egFieldType.equals("l"))	
+				else if(egFieldType.equals("l"))
 					methods.a(" jsonObject.addProperty(\""+f.getName()+"\", "+objectName+".get"+Utility.toSentenceCase(f.getName())+"().getName());"+NEWLINE);
 				else
 					methods.a(" jsonObject.addProperty(\""+f.getName()+"\", "+objectName+".get"+Utility.toSentenceCase(f.getName())+"());"+NEWLINE);
-			
-			}       
-			
+				methods.a("else"+NEWLINE);
+				methods.a(" jsonObject.addProperty(\""+f.getName()+"\",\"\");"+NEWLINE);
+				
 
 
-		}
+		}}
+			
 		/*if(drildownField.equals("code"))
 			methods.a(" jsonObject.addProperty(\"id\", "+objectName+".getCode());"+NEWLINE);
 			else*/
@@ -260,7 +262,8 @@ public class SearchAdaptorAndJSCreator {
 		}
 
 	}
+	}
+ 
 
 
-}
 

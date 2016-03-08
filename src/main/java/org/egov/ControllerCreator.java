@@ -390,7 +390,7 @@ public class ControllerCreator {
 					.a(NEWLINE)
 					.a("}")
 					.a(Utility.toCamelCase(serviceName)+".update("+Utility.toCamelCase(pojo.getSimpleName())+");"+NEWLINE)
-					.a("redirectAttrs.addFlashAttribute(\"message\", \"msg."+Utility.toCamelCase(pojo.getSimpleName())+".success\");"+NEWLINE)
+					.a("redirectAttrs.addFlashAttribute(\"message\", messageSource.getMessage(\"msg."+Utility.toCamelCase(pojo.getSimpleName())+".success\",null,null));"+NEWLINE)
 					.a("return \"redirect:/"+pojo.getSimpleName().toLowerCase()+"/result/\"+"+Utility.toCamelCase(pojo.getSimpleName())+".getId();")
 					.a(NEWLINE) 
 					.a("}")

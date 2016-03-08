@@ -18,6 +18,7 @@ import javax.validation.constraints.NotNull;
 import org.egov.infra.persistence.validator.annotation.Required;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotBlank;
+import org.ja.annotation.Ignore;
 import org.ja.annotation.SearchField;
 import org.ja.annotation.SearchResult;
 
@@ -226,6 +227,10 @@ public class JspCreator {
 				continue;
 			if(f.getName().equals("id"))
 				continue;
+			if(f.getName().toLowerCase().contains("created"))
+				continue;
+			if(f.getName().toLowerCase().contains("modified"))
+				continue;
 
 			String egFieldType="";
 			type = f.getType();
@@ -363,17 +368,24 @@ public class JspCreator {
 				continue;
 			if(f.getName().equals("id"))
 				continue;
-
+			if(f.getName().toLowerCase().contains("created"))
+				continue;
+			if(f.getName().toLowerCase().contains("modified"))
+				continue;
+			Ignore ignore=f.getDeclaredAnnotation(org.ja.annotation.Ignore.class);
+			if(ignore!=null)
+				continue;
+			
 			Required required = f.getDeclaredAnnotation(org.egov.infra.persistence.validator.annotation.Required.class);
 			NotBlank notblank = f.getDeclaredAnnotation(org.hibernate.validator.constraints.NotBlank.class);
 			NotNull notnull = f.getDeclaredAnnotation(javax.validation.constraints.NotNull.class);
-			Length length = f.getDeclaredAnnotation(org.hibernate.validator.constraints.Length.class);		
+			Length length = f.getDeclaredAnnotation(org.hibernate.validator.constraints.Length.class);
+			
 			boolean mandatory=false;
 			String egFieldType="";
 			type = f.getType();
 			egFieldType = Utility.findTypes(f);
-
-
+            
 			if(required!=null || notblank!=null || notnull!=null)
 			{
 				mandatory=true;
@@ -575,10 +587,10 @@ public class JspCreator {
 				type = f.getType();
 				if(type.getName().contains("org.egov"))
 				{
-				labels.append(key+"="+f.getClass().getSimpleName()+NEWLINE);
+				labels.append(key+"="+type.getClass().getSimpleName()+NEWLINE);
 				}else
 				{
-					labels.append(key+"="+f.getName()+NEWLINE);
+					labels.append(key+"="+Utility.toSentenceCase(f.getName())+NEWLINE);
 				}
 			}
 		}

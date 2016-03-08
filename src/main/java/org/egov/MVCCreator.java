@@ -5,7 +5,7 @@ public class MVCCreator {
 
 
 	public static void main(String[] args) {
-		String fullyQualifiedName="org.egov.commons.CFinancialYear";//default Either Ucan change this or pass as arguement
+		String fullyQualifiedName="org.egov.commons.Fund";//default Either Ucan change this or pass as arguement
 		
 		
 		if(args!=null && args.length>=1 && args[0]!=null)

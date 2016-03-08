@@ -41,7 +41,7 @@ public class DdlCreator {
 			//org.egov.tl.domain.entity.Validity.class;
 			
 			
-			String tableName = org.egov.tl.entity.Validity.class.getAnnotation(Table.class).name();//this is another place of dependency
+			String tableName="" ;// org.egov.tl.entity.Validity.class.getAnnotation(Table.class).name();//this is another place of dependency
 			
 			
 			String sequenceName = "seq_"+tableName;
