@@ -706,6 +706,9 @@ public class JspCreator {
 				s.a(" <form:hidden path=\""+f.getName()+"\" />");
 				
 			}
+			else if(egFieldType.equals("b")){
+				s.a(" <form:checkbox path=\""+f.getName()+"\" />");  
+			}
 			else	
 			{
 
