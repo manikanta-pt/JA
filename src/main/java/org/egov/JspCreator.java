@@ -299,29 +299,12 @@ public class JspCreator {
 		String simpleName = pojo.getSimpleName();
 		resultjsp.append("<%@ page contentType=\"text/html;charset=UTF-8\" language=\"java\"%>"+NEWLINE);
 		resultjsp.append("<%@ include file=\"/includes/taglibs.jsp\"%>"+NEWLINE);
-		String uptoForm=
-				"<div class=\"main-content\">"+
-						"<div class=\"row\">"+
-						"<div class=\"col-md-12\">"+
-						"<div class=\"panel panel-primary\" data-collapsed=\"0\">"+
-						"<div class=\"panel-heading\">"+
-						"<div class=\"panel-title\">"+
-						simpleName+
-						"</div>"+
-						"</div>"+
-						"<div class=\"panel-body\">";
-		resultjsp.append(uptoForm);
-		resultjsp.append("<div class=\"panel-title text-center no-float\">");
+		
+	 
+		resultjsp.append("<div class=\"alert alert-success\" role=\"alert\">");
 		resultjsp.append("<strong>${message}</strong>");
 		resultjsp.append("</div>");
-		resultjsp.append(" </div></div></div></div>");
-		SB buttons=new SB();
-
-		buttons.a("<div class=\"form-group\">")
-		.a("<div class=\"text-center\">")
-		.a("<a href='javascript:void(0)' class='btn btn-default' onclick='self.close()'><spring:message code='lbl.close' /></a>")
-		.a("</div></div>");
-		resultjsp.append(buttons.str());	
+		resultjsp.append("<%@ include file=\""+Utility.toCamelCase(simpleName)+"-view.jsp\"%>");	
 
 		
 	}
@@ -410,7 +393,7 @@ public class JspCreator {
 			s.a("<div class=\"col-sm-3 add-margin\">"+NEWLINE);
 			if(egFieldType.equals("l"))
 			{
-				String select="<form:select path=\""+f.getName()+".id\" id=\""+f.getName()+".id\" cssClass=\"form-control\" "+
+				String select="<form:select path=\""+f.getName()+"\" id=\""+f.getName()+"\" cssClass=\"form-control\" "+
 						"cssErrorClass=\"form-control error\" >"+NEWLINE+
 						"<form:option value=\"\"> <spring:message code=\"lbl.select\"/> </form:option>"+NEWLINE+
 						"<form:options items=\"${"+Utility.toCamelCase(f.getType().getSimpleName())+"s}\" itemValue=\"id\" itemLabel=\"name\" "+requiredMarker+" />"+NEWLINE+
@@ -674,7 +657,7 @@ public class JspCreator {
 			s.a("<div class=\"col-sm-3 add-margin\">"+NEWLINE);
 			if(egFieldType.equals("l"))
 			{
-				String select="<form:select path=\""+f.getName()+".id\" id=\""+f.getName()+".id\" cssClass=\"form-control\" "+
+				String select="<form:select path=\""+f.getName()+"\" id=\""+f.getName()+"\" cssClass=\"form-control\" "+
 						"cssErrorClass=\"form-control error\" >"+NEWLINE+
 						"<form:option value=\"\"> <spring:message code=\"lbl.select\"/> </form:option>"+NEWLINE+
 						"<form:options items=\"${"+Utility.toCamelCase(f.getType().getSimpleName())+"s}\" itemValue=\"id\" itemLabel=\"name\" "+requiredMarker+" />"+NEWLINE+

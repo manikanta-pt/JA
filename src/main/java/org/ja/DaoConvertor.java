@@ -16,14 +16,14 @@ public class DaoConvertor {
 
 	public static void main(String[] args) throws IOException {
 		
-		File f=new File(Utility.PROJECTHOME+"/src/main/java/org/egov/");
+	 
 		DaoConvertor dao=new DaoConvertor();
 		dao.walk(Utility.PROJECTHOME+"/src/main/java/");
 		for(String s:dao.daoList)
 		{
 			File srcFile=new File(s);
 			String content = new Scanner(srcFile).useDelimiter("\\Z").next();
-			if(content.contains("private EntityManager entityManager;"))
+			if(content.contains("EntityManager entityManager;"))
 			{
 				continue;
 			}
@@ -66,10 +66,11 @@ public class DaoConvertor {
 				"		return (List<Fund>) getCurrentSession().createCriteria(Fund.class).list();"+Utility.NEWLINE+
 				"	}"+Utility.NEWLINE;
 		                
-		String constructorModified = constructor.replace("Fund", entityName);
+		String constructorModified = constructor.replace("FundHibernateDAO", daoName);
+		constructorModified = constructorModified.replace("Fund", entityName);
 		String overrideModified=override.replace("Fund", entityName);
 						contentBuffer.insert(contentBuffer.indexOf("{")+1,persist+constructorModified);
-						contentBuffer.insert(contentBuffer.indexOf("{")+1,persist+overrideModified);
+						//contentBuffer.insert(contentBuffer.indexOf("{")+1,overrideModified);
 						String string = contentBuffer.toString();
 						  string = string.replaceAll("HibernateUtil.getCurrentSession", "getCurrentSession");
 						  string =string.replace("import org.egov.infstr.utils.HibernateUtil;", "");
