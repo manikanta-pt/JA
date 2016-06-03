@@ -33,7 +33,7 @@ public class SpringPersistenceQualifier {
 
 
 	public static void main(String[] args) {
-		module="tl";
+		module="egf";
 		findBeans(args);
 		/*module="egf";
 		findBeans(args);
@@ -230,6 +230,23 @@ public class SpringPersistenceQualifier {
 				isProto=true;
 			}
 			else if(f.getType().getSuperclass()!=null && f.getType().getSuperclass().getName().contains("PersistenceService"))
+			{
+				isProto=true;
+				serviceBeans.add(f.getName());
+			}
+			
+			System.out.println("--------"+f.getName()+"--------------");
+			if(f.getName().equalsIgnoreCase("WorkflowService"))
+			{
+				serviceBeans.add(f.getName());
+				isProto=true;
+			}
+			else if(f.getType().getName().contains("WorkflowService"))
+			{
+				serviceBeans.add(f.getName());
+				isProto=true;
+			}
+			else if(f.getType().getSuperclass()!=null && f.getType().getSuperclass().getName().contains("WorkflowService"))
 			{
 				isProto=true;
 				serviceBeans.add(f.getName());

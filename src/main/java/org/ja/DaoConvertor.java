@@ -18,7 +18,7 @@ public class DaoConvertor {
 		
 	 
 		DaoConvertor dao=new DaoConvertor();
-		dao.walk(Utility.PROJECTHOME+"/src/main/java/");
+		dao.walk(Utility.PROJECTHOME+"/src/main/java/org/egov/commons/dao/");
 		for(String s:dao.daoList)
 		{
 			File srcFile=new File(s);

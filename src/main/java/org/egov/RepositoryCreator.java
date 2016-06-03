@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Field;
 
 public class RepositoryCreator {
 
@@ -13,11 +14,11 @@ public class RepositoryCreator {
 
 	public static void main(String[] args) {
 		RepositoryCreator rc=new RepositoryCreator();
-		//rc.createRepository("org.egov.tl.domain.entity.FeeMatrixDetail");
+		rc.createRepository("org.egov.commons.CChartOfAccounts");
 
 	}
 
-	public void	createRepository(String fullyQualifiedName)
+	public void	createRepository(String fullyQualifiedName) 
 	{
 		try {
 			pojoHolder.loadPojo(fullyQualifiedName);
@@ -47,9 +48,20 @@ public class RepositoryCreator {
 
 			writer.write(Utility.NEWLINE);
 			writer.write(Utility.NEWLINE);
-
+			
+			Class<?> type=null;
+			String idType="Long";
+			try {
+				Field declaredFieldId = pojo.getDeclaredField("id");
+				type = declaredFieldId.getType();
+				idType = type.getName();
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			 
 			writer.write("@Repository "+Utility.NEWLINE);
-			writer.write("public interface "+fileName+" extends JpaRepository<"+pojo.getSimpleName()+",Long> {"+Utility.NEWLINE);
+			writer.write("public interface "+fileName+" extends JpaRepository<"+pojo.getSimpleName()+","+idType+"> {"+Utility.NEWLINE);
 			writer.write(Utility.NEWLINE);
 		   //writing specific methods
 			try {

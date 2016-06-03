@@ -41,6 +41,7 @@ public class ControllerCreator {
 			
 
 			Class<?> pojo = pojoHolder.getPojo();
+			
 			List<String> findAjaxCalls = pojoHolder.findAjaxCalls(Utility.SRCFOLDER+"/"+pojo.getCanonicalName().replace(".", "/")+".java");
 			
 			String[] readImports = pojoHolder.readImports(Utility.SRCFOLDER+"/"+pojo.getCanonicalName().replace(".", "/")+".java");
@@ -435,7 +436,7 @@ public class ControllerCreator {
 
 		SB result=new SB();	
 	result.a("@RequestMapping(value = \"/result/{"+viewField+"}\", method = RequestMethod.GET)"+NEWLINE+
-			      " public String result(@PathVariable(\""+viewField+"\") final Long id,Model model){"+NEWLINE);
+			      " public String result(@PathVariable(\""+viewField+"\") final "+viewType+" id,Model model){"+NEWLINE);
 	
 	if(viewField.equalsIgnoreCase("code"))
 	{

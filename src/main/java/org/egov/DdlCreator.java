@@ -19,7 +19,7 @@ public class DdlCreator {
 	public static void main(String[] args) {
 		
 		DdlCreator rc=new DdlCreator();
-		rc.createDdl("org.egov.commons.CFinancialYear");
+		rc.createDdl("org.egov.assets.model.CategoryPropertyType");
 
 	}
 	
@@ -41,11 +41,11 @@ public class DdlCreator {
 			//org.egov.tl.domain.entity.Validity.class;
 			
 			
-			String tableName="" ;// org.egov.tl.entity.Validity.class.getAnnotation(Table.class).name();//this is another place of dependency
+			String tableName=pojo.getAnnotation(Table.class).name();//this is another place of dependency
 			
 			
 			String sequenceName = "seq_"+tableName;
-			seq.append("create sequence "+sequenceName +";");
+			seq.append("create sequence "+sequenceName +";"+NEWLINE);
 			
 			main.append("Create table "+tableName +"( "+NEWLINE );
 			for(Field f:declaredFields)
@@ -53,19 +53,33 @@ public class DdlCreator {
 				if(f.getName().equals("serialVersionUID"))
 					continue;
 				if (java.lang.reflect.Modifier.isStatic(f.getModifiers()))
+				{
 					continue;
+				}
+					
 				String egType = Utility.findTypes(f);
 				if(f.getAnnotation(ManyToOne.class)!=null)
 				{
-					main.append(f.getName()+" bigint ");
+					String fieldname=f.getName();
+					String fkTable = f.getType().getSimpleName();
+					 
 					if(f.getAnnotation(JoinColumn.class)!=null)
 					{
+						fieldname=f.getAnnotation(JoinColumn.class).name();
+						 
 						if(!f.getAnnotation(JoinColumn.class).nullable())
 						{
 							main.append("NOT NULL");	
 						}
+						PojoHolder pojoHolderRef=new PojoHolder();
+						pojoHolderRef.loadPojo(f.getType().getName());
+						 fkTable = pojoHolderRef.getPojo().getAnnotation(Table.class).name();
 						
 					}
+					main.append(fieldname+" bigint ");
+					ref.append("alter table "+tableName+" add constraint fk_"+tableName+"_"+fieldname+" "
+							+ " FOREIGN KEY ("+fieldname+") REFERENCES "+fkTable+"(id);"+NEWLINE);
+						 
 				}
 				else if(egType.equals("s"))
 				{
@@ -119,9 +133,14 @@ public class DdlCreator {
 				main.append(","+NEWLINE+TAB);
 				
 			}
-			//main.append(" createddate timestamp without time zone,\n\t createdby bigint,\n\t lastmodifieddate timestamp without time zone,\n\t"+
-				//	   " lastmodifiedby bigint,\n\t version bigint"+NEWLINE+");");
-			sqlWriter.write(seq.toString());
+			main.append(" createddate timestamp without time zone,\n\t createdby bigint,\n\t lastmodifieddate timestamp without time zone,\n\t"+
+				   " lastmodifiedby bigint,\n\t version bigint"+NEWLINE+");"+NEWLINE);
+			//add pk
+			main.append("alter table "+tableName+" add constraint pk_"+tableName+" primary key (id);"+NEWLINE);
+			main.append(ref.toString());
+			main.append(seq);
+			
+			//sqlWriter.write(seq.toString());
 			sqlWriter.write(NEWLINE);
 			sqlWriter.write(main.toString());
 			

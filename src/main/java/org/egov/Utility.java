@@ -9,19 +9,19 @@ public class Utility {
 	public static String NEWLINE="\n";
 	public static String QUOTE="\"";
 	public static String TAB="\t";
-	public static String PROJECTHOME="/home/mani/Workspaces/github_phoenix/eGov/egov/egov-egf";//only change this rest is taken care from this
+	public static String PROJECTHOME="/home/mani/Workspaces/github_phoenix/eGov/egov/egov-assets";//only change this rest is taken care from this
 	public static String PROJECT_WEBHOME=PROJECTHOME+"web";
 	public static String SRCFOLDER=PROJECTHOME+"/src/main/java";
 	public static String CONTROLLER_FOLDER=PROJECT_WEBHOME+"/src/main/java";
 	public static String SQL_FOLDER=PROJECTHOME+"/src/main/resources/db/migration/main";
-	public static String CONTEXT="EGF";//change this 
-
-	public static String MODULE_NAME="EGF"; //change this 
+	public static String CONTEXT="egassets";//change this 
+	public static String MODULEIDENTIFIER="asset";//change this 
+	public static String MODULE_NAME="Asset Management"; //change this 
 	public static String SUBMODULE_NAME="Masters";//change this
 	public static String SEARCH_URL="ajaxsearch";
 	public static String BEFORE_SEARCH_URL="search";
 	
-	public static final String WEBPACKAGE = "org.egov."+CONTEXT.toLowerCase()+".web.controller";
+	public static final String WEBPACKAGE = "org.egov."+MODULEIDENTIFIER.toLowerCase()+".web.controller";
 
 
 

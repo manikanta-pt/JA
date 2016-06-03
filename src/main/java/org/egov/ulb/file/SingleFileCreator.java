@@ -23,13 +23,13 @@ public class SingleFileCreator {
 	
 
 	public static void main(String[] args) throws IOException {
-		
+		  
 		  String ulbName="";
 		  Path currentRelativePath = Paths.get("");
 		  String s = currentRelativePath.toAbsolutePath().toString();
 		  System.out.println("Current relative path is: " + s);	
 		  String CurrfilePath = "/src/main/java/org/egov/ulb/file/";
-		  String content = "update :schemaName.accountdetailtype set version=0";
+		  String content = "select :schemaName.load_coa(); select :schemaName.delete_coa();";
 	  
 	  FileReader reader=new FileReader(s+"/src/main/java/org/egov/ulb/"+"ulbnames.txt");
 	  BufferedReader br=new BufferedReader(reader);

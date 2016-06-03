@@ -39,7 +39,7 @@ public class JspCreator {
 	public static void main(String[] args) {
 
 		JspCreator rc=new JspCreator();
-		rc.createJSP("org.egov.masters.model.AccountEntity");
+		rc.createJSP("org.egov.assets.model.AssetCategory");
 
 	}
 
@@ -63,9 +63,9 @@ public class JspCreator {
 			Class<?> pojo = pojoHolder.getPojo();
 
 			addTileEntry(pojo);
-			//System.out.println(tiles);
+			System.out.println(tiles);
 			addLabelsEntry(pojo);
-			//System.out.println(labels);
+			System.out.println(labels);
 			addMessagesEntry(pojo);
 			makeNewJsp(pojo);
 			makeResultJsp(pojo);
@@ -393,10 +393,10 @@ public class JspCreator {
 			s.a("<div class=\"col-sm-3 add-margin\">"+NEWLINE);
 			if(egFieldType.equals("l"))
 			{
-				String select="<form:select path=\""+f.getName()+"\" id=\""+f.getName()+"\" cssClass=\"form-control\" "+
-						"cssErrorClass=\"form-control error\" >"+NEWLINE+
+				String select="<form:select path=\""+f.getName()+"\" id=\""+f.getName()+"\" cssClass=\"form-control\" "+requiredMarker+
+						" cssErrorClass=\"form-control error\" >"+NEWLINE+
 						"<form:option value=\"\"> <spring:message code=\"lbl.select\"/> </form:option>"+NEWLINE+
-						"<form:options items=\"${"+Utility.toCamelCase(f.getType().getSimpleName())+"s}\" itemValue=\"id\" itemLabel=\"name\" "+requiredMarker+" />"+NEWLINE+
+						"<form:options items=\"${"+Utility.toCamelCase(f.getType().getSimpleName())+"s}\" itemValue=\"id\" itemLabel=\"name\" />"+NEWLINE+
 						"</form:select>"+NEWLINE;
 				s.a(select);
 
@@ -450,6 +450,8 @@ public class JspCreator {
 		formJsp.append(" <input type=\"hidden\" name=\""+Utility.toCamelCase(simpleName)+"\" value=\"${"+Utility.toCamelCase(simpleName)+".id}\" />");
 		//create buttons
 		SB buttons=new SB();
+		
+		
 		newjsp.append("<%@ include file=\""+simpleName.toLowerCase()+"-form.jsp\"  %>");
 		
 		buttons.a("<div class=\"form-group\">")
@@ -570,7 +572,7 @@ public class JspCreator {
 				type = f.getType();
 				if(type.getName().contains("org.egov"))
 				{
-				labels.append(key+"="+type.getClass().getSimpleName()+NEWLINE);
+				labels.append(key+"="+type.getSimpleName()+NEWLINE);
 				}else
 				{
 					labels.append(key+"="+Utility.toSentenceCase(f.getName())+NEWLINE);
