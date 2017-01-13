@@ -9,6 +9,8 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.ja.annotation.AjaxCall;
+
 import com.thoughtworks.qdox.JavaDocBuilder;
 import com.thoughtworks.qdox.model.JavaSource;
 
@@ -48,32 +50,18 @@ public class PojoHolder {
 		this.pojo = pojo;
 	}
 
-	public List<String> findAjaxCalls(String fullFileName)
+	public List<String> findAjaxCalls(PojoHolder pojoHolder)
 	{
 		List<String> ajaxCallsList=new ArrayList<String>();
 		try {
-			BufferedReader f=new BufferedReader(new FileReader(new File(fullFileName)));
+			for(Field f:pojoHolder.getPojo().getDeclaredFields())
+				
+			if(f.isAnnotationPresent(AjaxCall.class))
+			ajaxCallsList.add(f.getName());
 			
-			String readLine = f.readLine();
-			while (readLine!=null)
-			{
-				if(readLine.contains("//ajaxcall"))
-						{
-						readLine=f.readLine();
-						ajaxCallsList.add(readLine);
-						}
-				else
-				{
-					readLine=f.readLine();
-				}
-						
 			}
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		catch(Exception e)
+		{
 		}
 		return ajaxCallsList;
 	}

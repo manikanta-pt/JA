@@ -1,6 +1,7 @@
 package org.egov;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
 
 public class Utility {
 
@@ -9,15 +10,15 @@ public class Utility {
 	public static String NEWLINE="\n";
 	public static String QUOTE="\"";
 	public static String TAB="\t";
-	public static String PROJECTHOME="/home/mani/Workspaces/github_phoenix/eGov/egov/egov-assets";//only change this rest is taken care from this
-	public static String PROJECT_WEBHOME=PROJECTHOME+"web";
+	public static String PROJECTHOME="/home/mani/Workspaces/activiti/egov-playground/egov-process";//only change this rest is taken care from this
+	public static String PROJECT_WEBHOME=PROJECTHOME+"";//"web"
 	public static String SRCFOLDER=PROJECTHOME+"/src/main/java";
 	public static String CONTROLLER_FOLDER=PROJECT_WEBHOME+"/src/main/java";
 	public static String SQL_FOLDER=PROJECTHOME+"/src/main/resources/db/migration/main";
-	public static String CONTEXT="egassets";//change this 
-	public static String MODULEIDENTIFIER="asset";//change this 
-	public static String MODULE_NAME="Asset Management"; //change this 
-	public static String SUBMODULE_NAME="Masters";//change this
+	public static String CONTEXT="egov-process";//change this 
+	public static String MODULEIDENTIFIER="process";//change this 
+	public static String MODULE_NAME="Process Management"; //change this 
+	public static String SUBMODULE_NAME="Process";//change this
 	public static String SEARCH_URL="ajaxsearch";
 	public static String BEFORE_SEARCH_URL="search";
 	
@@ -68,6 +69,7 @@ public class Utility {
 		String egFieldType;
 		Class<?> type;
 		type = f.getType();
+		
 		if(type.getName().contains("Date"))
 			egFieldType="d";
 		else if(type.getName().contains("java.util"))
@@ -80,6 +82,8 @@ public class Utility {
 			egFieldType="b";
 		else if(f.getName().equals("id") )
 			egFieldType="i";
+		else if(f.getType().isEnum() )
+			egFieldType="a";
 		else
 			egFieldType="n";
 		return egFieldType;
@@ -135,6 +139,11 @@ public class Utility {
 		{
 			return false;
 		}
+	}
+	public static Class<?> getEnclosingType(Field f) {
+		 ParameterizedType stringListType = (ParameterizedType) f.getGenericType();
+	        Class<?> stringListClass = (Class<?>) stringListType.getActualTypeArguments()[0];
+	        return stringListClass;
 	}
 	
 

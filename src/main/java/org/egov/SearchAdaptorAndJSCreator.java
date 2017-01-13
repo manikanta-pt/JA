@@ -10,6 +10,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Scanner;
 
+import org.ja.annotation.DrillDown;
+import org.ja.annotation.DrillDownTable;
 import org.ja.annotation.SearchResult;
 
 public class SearchAdaptorAndJSCreator {
@@ -23,6 +25,7 @@ public class SearchAdaptorAndJSCreator {
 	StringBuilder urls=new StringBuilder();
 	private String simpleName;
 	private String objectName;
+	private boolean adddelete;
 	public static void main(String[] args) {
 
 		SearchAdaptorAndJSCreator rc=new SearchAdaptorAndJSCreator();
@@ -63,6 +66,10 @@ public class SearchAdaptorAndJSCreator {
 					continue;
 				if(f.getName().equals("id"))
 					continue;
+				 if(f.isAnnotationPresent(DrillDownTable.class))
+				 {
+					adddelete=true;  
+				 }
 
 				SearchResult isSearchResult = f.getDeclaredAnnotation(org.ja.annotation.SearchResult.class);
 				//Length length = f.getDeclaredAnnotation(org.hibernate.validator.constraints.Length.class);	
@@ -100,6 +107,13 @@ public class SearchAdaptorAndJSCreator {
 			System.out.println("Current relative path is: " + s);	
 			String CurrfilePath = "/src/main/java/org/ja/js/dataTableJS";
 			File jssrcFile=new File(s+CurrfilePath);
+			String	contentadddel="";
+			if(adddelete)
+			{
+				String CurrAddPath = "/src/main/java/org/ja/js/adddelete.js";
+				File jssrcaddFile=new File(s+CurrAddPath);	
+				contentadddel = new Scanner(jssrcaddFile).useDelimiter("\\Z").next();
+			}
 			String content;
 
 			content = new Scanner(jssrcFile).useDelimiter("\\Z").next();
@@ -109,6 +123,12 @@ public class SearchAdaptorAndJSCreator {
 			content=	content.replace("columnsandtitle".toUpperCase(), columnsandtitle);
 			
 			content=	content.replace("urluptopojo".toUpperCase(), urluptopojo);
+			
+			
+			
+			
+			
+			 
 
 
 			String jsPathname = Utility.PROJECT_WEBHOME+"/src/main/webapp/resources/app/js/";
@@ -127,6 +147,7 @@ public class SearchAdaptorAndJSCreator {
 			jsFileNameWriter = new PrintWriter(jsFileName);
 
 			jsFileNameWriter.write(content);
+			jsFileNameWriter.write(contentadddel);
 			jsFileNameWriter.flush();
 			jsFileNameWriter.close();
 
@@ -234,7 +255,7 @@ public class SearchAdaptorAndJSCreator {
 		.a(NEWLINE)
 		.a(" }");
 
-		String adaptorPathname = Utility.PROJECT_WEBHOME+"/src/main/java/org/egov/"+Utility.CONTEXT.toLowerCase()+"/web/adaptor/";
+		String adaptorPathname = Utility.PROJECT_WEBHOME+"/src/main/java/org/egov/"+Utility.MODULEIDENTIFIER+"/web/adaptor/";
 		File adaptorPath=new File(adaptorPathname);
 		if(!adaptorPath.exists())
 			adaptorPath.mkdirs();

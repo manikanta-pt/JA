@@ -13,6 +13,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
 
+import org.ja.annotation.DrillDown;
+import org.ja.annotation.DrillDownTable;
 import org.springframework.context.MessageSource;
 
 public class ControllerCreator {
@@ -35,14 +37,8 @@ public class ControllerCreator {
 	{	
 		try {
 			pojoHolder.loadPojo(fullyQualifiedName);
-			
-
-			
-			
-
 			Class<?> pojo = pojoHolder.getPojo();
-			
-			List<String> findAjaxCalls = pojoHolder.findAjaxCalls(Utility.SRCFOLDER+"/"+pojo.getCanonicalName().replace(".", "/")+".java");
+			List<String> findAjaxCalls = pojoHolder.findAjaxCalls(pojoHolder);
 			
 			String[] readImports = pojoHolder.readImports(Utility.SRCFOLDER+"/"+pojo.getCanonicalName().replace(".", "/")+".java");
 			for(String s: readImports)
@@ -71,109 +67,17 @@ public class ControllerCreator {
 
 			//adding find All for fields
 			
+			makePrepareMethod(pojoHolder.getPojo(),findAjaxCalls);
+			
 			Field[] declaredFields = pojoHolder.getPojo().getDeclaredFields();
-			findAll.append(new SB()
-			.a("private void prepareNewForm(Model model) {")
-			.a(NEWLINE)
-			.str());
-			
-			if(Utility.USE_PERSISTENCE_SERVICE)
-			{	
-				services.append(new SB()
-				.a(TAB)
-				.a("@Autowired")
-				.a(NEWLINE)
-				.a("public PersistenceService persistenceService;")
-				.a(NEWLINE).a(NEWLINE).str());
-				
-				imports.append(new SB()
-				.a("import org.egov.infstr.services.PersistenceService;")
-				.a(NEWLINE).str());
-			}
-			for(Field field:declaredFields)
+			for(Field f:declaredFields)
 			{
-				Class<?> type = field.getType();
-				String fieldFullName = type.getName();
-				boolean ajax=false;
-				//Deprecated annotation = type.getAnnotation(Deprecated.class);
-				//boolean annotationPresent = type.isAnnotationPresent(Deprecated.class);
-				if(!findAjaxCalls.isEmpty())
+				if(	f.isAnnotationPresent(DrillDown.class) ||  	f.isAnnotationPresent(DrillDownTable.class))
 				{
-					for(String s:findAjaxCalls)
-					{
-						if(s.contains(type.getSimpleName()))
-						{
-							ajax=true;
-							createAjaxActions(fieldFullName, urls, type);
-						}
-					}
+					makePrepareMethod(Utility.getEnclosingType(f),null);
 				}
-
-				if(fieldFullName.contains("org.egov"))
-				{
-					String serviceFor = pojoHolder.getServiceFor(fieldFullName)	;
-					imports.append(new SB()
-					.a("import ")
-					.a(fieldFullName)
-					.a(";"+NEWLINE).str());
 					
-					if(!Utility.USE_PERSISTENCE_SERVICE)
-					{	
-						findAll.append(
-								new SB()
-								.a(TAB)
-								.a("model.addAttribute(\"")
-								.a(Utility.toCamelCase(type.getSimpleName()+"s\""))
-								.a(",").str());
-								if(ajax)
-									findAll.append(new SB()
-									.a("Collections.EMPTY_LIST);").a(NEWLINE).str());	
-								else
-									findAll.append(new SB()
-									.a(Utility.toCamelCase(type.getSimpleName())+"Service.findAll());")
-											.a(NEWLINE)
-											.str());
-
-				
-					services.append(new SB()
-					.a(TAB)
-					.a("@Autowired")
-					.a(NEWLINE)
-					.a("private ")
-					.a(type.getSimpleName()+"Service")
-					.a(" ")
-					.a(Utility.toCamelCase(type.getSimpleName())+"Service")
-					.a(";")
-					.a(NEWLINE).str());
-					
-					
-					
-					imports.append(new SB()
-					.a("import ")
-					.a(serviceFor)
-					.a(";"+NEWLINE).a(NEWLINE).str());
-
-					}else
-					{
-						
-						findAll.append(
-								new SB()
-								.a(TAB)
-								.a("model.addAttribute(\"")
-								.a(Utility.toCamelCase(type.getSimpleName()+"s\""))
-								.a(",").str());
-						if(ajax)
-							findAll.append(new SB()
-							.a("Collections.EMPTY_LIST);").a(NEWLINE).str());	
-						else
-							findAll.append(new SB()
-								.a("(List<"+type.getSimpleName()+">)persistenceService.findAllBy(\"from "+type.getSimpleName()+" order by name asc\"));")
-								.a(NEWLINE)
-								.str());
-					}
-				}
 			}
-			
 			findAll.append(new SB()
 			.a("}")
 			.a(NEWLINE)
@@ -314,7 +218,7 @@ public class ControllerCreator {
 					.a("; }")
 					.a(NEWLINE)
 					.a(Utility.toCamelCase(serviceName)+".create("+Utility.toCamelCase(pojo.getSimpleName())+");"+NEWLINE)
-					.a("redirectAttrs.addFlashAttribute(\"message\", messageSource.getMessage(\"msg."+Utility.toCamelCase(pojo.getSimpleName())+".success\",null,null));"+NEWLINE)
+					.a("redirectAttrs.addFlashAttribute(\"message\", messageSource.getMessage(\"msg."+pojo.getSimpleName().toLowerCase()+".success\",null,null));"+NEWLINE)
 					.a("return \"redirect:/"+pojo.getSimpleName().toLowerCase()+"/result/\"+"+Utility.toCamelCase(pojo.getSimpleName())+".getId();")
 					.a(NEWLINE) 
 					.a("}")
@@ -391,7 +295,7 @@ public class ControllerCreator {
 					.a(NEWLINE)
 					.a("}")
 					.a(Utility.toCamelCase(serviceName)+".update("+Utility.toCamelCase(pojo.getSimpleName())+");"+NEWLINE)
-					.a("redirectAttrs.addFlashAttribute(\"message\", messageSource.getMessage(\"msg."+Utility.toCamelCase(pojo.getSimpleName())+".success\",null,null));"+NEWLINE)
+					.a("redirectAttrs.addFlashAttribute(\"message\", messageSource.getMessage(\"msg."+pojo.getSimpleName().toLowerCase()+".success\",null,null));"+NEWLINE)
 					.a("return \"redirect:/"+pojo.getSimpleName().toLowerCase()+"/result/\"+"+Utility.toCamelCase(pojo.getSimpleName())+".getId();")
 					.a(NEWLINE) 
 					.a("}")
@@ -479,8 +383,8 @@ public class ControllerCreator {
 				sqlWriter.append(Utility.createUrls("View-"+pojo.getSimpleName(),"/"+urlName+"/view",  "false", "1"));
 				sqlWriter.append(Utility.createUrls("Edit-"+pojo.getSimpleName(),"/"+urlName+"/edit",  "false", "1"));
 				sqlWriter.append(Utility.createUrls("Result-"+pojo.getSimpleName(),"/"+urlName+"/result",  "false", "1"));
-				sqlWriter.append(Utility.createUrls("Search and View-"+pojo.getSimpleName(),"/"+urlName+"/"+Utility.BEFORE_SEARCH_URL+"/view",  "true", "2"));
-				sqlWriter.append(Utility.createUrls("Search and Edit-"+pojo.getSimpleName(),"/"+urlName+"/"+Utility.BEFORE_SEARCH_URL+"/edit",  "true", "3"));
+				sqlWriter.append(Utility.createUrls("View "+pojo.getSimpleName(),"/"+urlName+"/"+Utility.BEFORE_SEARCH_URL+"/view",  "true", "2"));
+				sqlWriter.append(Utility.createUrls("Edit "+pojo.getSimpleName(),"/"+urlName+"/"+Utility.BEFORE_SEARCH_URL+"/edit",  "true", "3"));
 				sqlWriter.append(Utility.createUrls("Search and View Result-"+pojo.getSimpleName(),"/"+urlName+"/"+Utility.SEARCH_URL+"/view",  "false", "1"));
 				sqlWriter.append(Utility.createUrls("Search and Edit Result-"+pojo.getSimpleName(),"/"+urlName+"/"+Utility.SEARCH_URL+"/edit",  "false", "1"));
 				sqlWriter.append(urls.toString());
@@ -499,6 +403,122 @@ public class ControllerCreator {
 			}
 
 		}
+
+	private void makePrepareMethod(Class<?> class1, List<String> findAjaxCalls)
+			throws IOException, FileNotFoundException {
+		Field[] declaredFields =class1.getDeclaredFields();
+		if(findAll.length()==0)
+		{
+		findAll.append(new SB()
+		.a("private void prepareNewForm(Model model) {")
+		.a(NEWLINE)
+		.str());
+		}
+		if(Utility.USE_PERSISTENCE_SERVICE)
+		{	
+			services.append(new SB()
+			.a(TAB)
+			.a("@Autowired")
+			.a(NEWLINE)
+			.a("public PersistenceService persistenceService;")
+			.a(NEWLINE).a(NEWLINE).str());
+			
+			imports.append(new SB()
+			.a("import org.egov.infstr.services.PersistenceService;")
+			.a(NEWLINE).str());
+		}
+		for(Field field:declaredFields)
+		{
+			Class<?> type = field.getType();
+			String fieldFullName = type.getName();
+			boolean ajax=false;
+			//Deprecated annotation = type.getAnnotation(Deprecated.class);
+			//boolean annotationPresent = type.isAnnotationPresent(Deprecated.class);
+			if(findAjaxCalls!=null && !findAjaxCalls.isEmpty())
+			{
+				for(String s:findAjaxCalls)
+				{
+					if(s.contains(type.getSimpleName()))
+					{
+						ajax=true;
+						createAjaxActions(fieldFullName, urls, type);
+					}
+				}
+			}
+
+			if(fieldFullName.contains("org.egov"))
+			{
+				String serviceFor = pojoHolder.getServiceFor(fieldFullName)	;
+				imports.append(new SB()
+				.a("import ")
+				.a(fieldFullName)
+				.a(";"+NEWLINE).str());
+				
+				if(!Utility.USE_PERSISTENCE_SERVICE)
+				{	
+					findAll.append(
+							new SB()
+							.a(TAB)
+							.a("model.addAttribute(\"")
+							.a(Utility.toCamelCase(type.getSimpleName()+"s\""))
+							.a(",").str());
+							if(ajax)
+								findAll.append(new SB()
+								.a("Collections.EMPTY_LIST);").a(NEWLINE).str());	
+							else if(field.getType().isAnnotation())
+							{
+								findAll.append(new SB()
+								.a(type.getSimpleName()+".values());")
+										.a(NEWLINE)
+										.str());
+							}
+							else 
+								findAll.append(new SB()
+								.a(Utility.toCamelCase(type.getSimpleName())+"Service.findAll());")
+										.a(NEWLINE)
+										.str());
+
+			
+				services.append(new SB()
+				.a(TAB)
+				.a("@Autowired")
+				.a(NEWLINE)
+				.a("private ")
+				.a(type.getSimpleName()+"Service")
+				.a(" ")
+				.a(Utility.toCamelCase(type.getSimpleName())+"Service")
+				.a(";")
+				.a(NEWLINE).str());
+				
+				
+				
+				imports.append(new SB()
+				.a("import ")
+				.a(serviceFor)
+				.a(";"+NEWLINE).a(NEWLINE).str());
+
+				}else
+				{
+					
+					findAll.append(
+							new SB()
+							.a(TAB)
+							.a("model.addAttribute(\"")
+							.a(Utility.toCamelCase(type.getSimpleName()+"s\""))
+							.a(",").str());
+					if(ajax)
+						findAll.append(new SB()
+						.a("Collections.EMPTY_LIST);").a(NEWLINE).str());	
+					else
+						findAll.append(new SB()
+							.a("(List<"+type.getSimpleName()+">)persistenceService.findAllBy(\"from "+type.getSimpleName()+" order by name asc\"));")
+							.a(NEWLINE)
+							.str());
+				}
+			}
+		}
+		 
+	}
 
 	public void createSearch(PojoHolder pojoHolder2) {
 		SB beforeSearch=new SB();

@@ -71,15 +71,16 @@ public class RepositoryCreator {
 					writer.write(Utility.NEWLINE);
 				}
 			} catch (Exception e) {
-
+				System.err.println("error while writing findByName api");
 			} 
-			try {
+			try {	
 				if(pojo.getField("code")!=null)
 				{
 					writer.write(pojo.getSimpleName()+" "+"findByCode(String code);"+Utility.NEWLINE);
 					writer.write(Utility.NEWLINE);
 				}
 			} catch (Exception e) {
+				System.err.println("error while writing findByCode api");
 			}  
 
 			writer.write("}");

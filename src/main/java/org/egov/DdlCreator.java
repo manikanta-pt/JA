@@ -19,7 +19,7 @@ public class DdlCreator {
 	public static void main(String[] args) {
 		
 		DdlCreator rc=new DdlCreator();
-		rc.createDdl("org.egov.assets.model.CategoryPropertyType");
+		rc.createDdl("org.egov.process.entity.BillDetails");
 
 	}
 	

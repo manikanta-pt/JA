@@ -14,6 +14,9 @@
 controller name of result in small letter--done
 name of the include jsp--done
 add result action  -done
-add result messaage in properties  --not required
+add result messaage in properties  
 
+extra space  like between id=" name"
+
+for the drilldown <tr id="resultrow0"> hardcode this in otherwise
 
