@@ -14,7 +14,7 @@ public class RepositoryCreator {
 
 	public static void main(String[] args) {
 		RepositoryCreator rc=new RepositoryCreator();
-		rc.createRepository("org.egov.commons.CChartOfAccounts");
+		rc.createRepository("org.egov.egf.entity.Bank");
 
 	}
 

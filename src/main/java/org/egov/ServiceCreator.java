@@ -16,7 +16,7 @@ public class ServiceCreator {
 	public static void main(String[] args) {
 		
 		ServiceCreator rc=new ServiceCreator();
-		rc.createService("org.egov.commons.CFinancialYear");
+		rc.createService("org.egov.egf.entity.Bank");
 	}
 
 	public void	createService(String fullyQualifiedName)

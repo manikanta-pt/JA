@@ -23,5 +23,18 @@ public class SB {
 	{
 		return sb.toString();
 	}
+   public SB a(int count)
+   {
+	   for(int i=0;i<=count;i++)
+		   sb.append(Utility.TAB);
+	   return this;
+   }
+   public SB n(int count)
+   {
+	   for(int i=0;i<=count;i++)
+		   sb.append(Utility.TAB);
+	   return this;
+   }
+  
 
 }
