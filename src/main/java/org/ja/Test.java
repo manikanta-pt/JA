@@ -1,5 +1,7 @@
 package org.ja;
-import java.io.*;                                                            
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.InputStreamReader;                                                            
 
 public class Test {                                                          
   public static void main(String[] args) throws Exception {  

@@ -10,12 +10,8 @@ import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
@@ -40,34 +36,70 @@ public class Yamlcreator {
 	private static final String POST_DESCRIPTION = "Create  new ";
 	private static final String POST_SUMMARY = "Create  new  ";
 	PojoHolder pojoHolder=new PojoHolder();
-    private List<String> referencedDetailedObjects=new ArrayList<String>();
+        private List<String> referencedDetailedObjects=new ArrayList<String>();
+        private static List<String> commonGetReqParamList;
+    
 	
 	public static void main(String[] args) {
+		
+		
+	
 		Yamlcreator rc=new Yamlcreator();
 		if(args!=null && args.length>0)
 		{
 			rc.create(args[0]);
 		}
 		else
-		rc.create("org.egov.egf.persistence.entity.Bank");
+		rc.create("org.egov.egf.persistence.entity.VoucherHeader");
 
 	}
 	
 	public void create(String fullyQualifiedName)    
 	{
+		
+		commonGetReqParamList=new ArrayList<String>();
+		commonGetReqParamList.add("code");
+		commonGetReqParamList.add("name");
+		commonGetReqParamList.add("bank");
+		commonGetReqParamList.add("bankbranch");
+		commonGetReqParamList.add("fromdate");
+		commonGetReqParamList.add("todate");
+		commonGetReqParamList.add("active");
+		commonGetReqParamList.add("accounttype");
+		commonGetReqParamList.add("budgetingtype");
+		commonGetReqParamList.add("maxcode");
+		commonGetReqParamList.add("mincode");
+		commonGetReqParamList.add("fund");
+		commonGetReqParamList.add("vouchernumber");
+		commonGetReqParamList.add("type");
+		commonGetReqParamList.add("department");
+		//System.out.println("For all error it is better to fix and regenerate ");
 		pojoHolder.loadPojo(fullyQualifiedName);
 		Class<?> pojo = pojoHolder.getPojo();
 		PrintWriter classFileWriter;
 		PrintWriter modulePathsFileWriter=null;
 		PrintWriter moduleDefFileWriter=null;
 		try {
+			File ymlpath=new File(Utility.YML_FOLDER);
+			if(!ymlpath.exists())
+			{
+				ymlpath.mkdirs();
+			}
 			classFileWriter = new PrintWriter(Utility.YML_FOLDER+"/"+pojo.getSimpleName()+".yaml", "UTF-8");
 			String moduleFileName=Utility.MODULE_NAME.replace(" ", "");
-			System.err.println(moduleFileName);
+			
+			File classFilepaths=new File(Utility.YML_FOLDER+"/"+pojo.getSimpleName()+".yaml");
+			
+			if(!classFilepaths.exists())
+			{
+				//paths.mkdirs();
+				classFilepaths.createNewFile();
+			}
+			
 			 
 			StringBuilder crud=new StringBuilder();
 			StringBuilder info=new StringBuilder();
-		    crud.append(createCRUD(fullyQualifiedName));
+		        crud.append(createCRUD(fullyQualifiedName));
 		   
 			String objectDefinition = getFullObjectDefinition(fullyQualifiedName);
 			
@@ -124,16 +156,22 @@ public class Yamlcreator {
 		objectDef.a("definitions:").a(NEWLINE);
 		Class<?> pojo = pojoHolder.getPojo();
 		objectDef.a(getObjectDefinition(fullyQualifiedName,pojo));
-		for(String s:referencedDetailedObjects)
+		
+		
+		for(int i = 0; i < referencedDetailedObjects.size(); i++)
 		{
-			objectDef.a(getObjectDefinition(s,null));	
+		  String current = referencedDetailedObjects.get(i); 
+		  objectDef.a(getObjectDefinition(current,null));	
+		  // Anything you insert after i will be discovered during next iterations
 		}
+		 
 		
 		objectDef.a(getReq_RespDef(pojo));
 		return objectDef.str();
 	}
 
 	private String getObjectDefinition(String fullyQualifiedName,Class<?> pojo ) {
+		
 		int tabCount=0;
 		SB objectDef=new SB();
 		try {
@@ -216,12 +254,12 @@ public class Yamlcreator {
 				{
 					if(f.isAnnotationPresent(DrillDown.class) || f.isAnnotationPresent(DrillDownTable.class) )
 					{
-						referencedDetailedObjects.add(f.getType().getName());
+						referencedDetailedObjects.add(Utility.getEnclosingType(f).getName());
 						objectDef.a(tabCount+1);
 						objectDef.a("type:").a(TAB).a("array").a(NEWLINE);	
 						objectDef.a(tabCount+1);
 						objectDef.a("description:").a(TAB).a(Utility.getDesc(snakeCaseName,objectSnakecase)).a(NEWLINE);
-						//objectDef.a(tabCount+1);
+						objectDef.a(tabCount+1);
 						objectDef.a("items:").a(NEWLINE);
 						objectDef.a(tabCount+2);
 						objectDef.a("$ref: \"#/definitions/"+Utility.getEnclosingType(f).getSimpleName()+"\"").a(NEWLINE);
@@ -241,7 +279,18 @@ public class Yamlcreator {
 					}else if(swaggerType.split(",")[0].equalsIgnoreCase("string")){
 						if(!f.isAnnotationPresent(Length.class))
 						{
-							System.err.println("Length is not added for string filed"+f.getName());
+							System.err.println("Length is not added for "+objectSnakecase+" string filed "+f.getName());
+						}else{
+							if (requiredList.contains(f.getName()))
+							{
+								Length len = f.getDeclaredAnnotation(org.hibernate.validator.constraints.Length.class);
+								if(len.min()==0)
+								{
+									
+									System.err.println("min length  is not added for "+objectSnakecase+" mandatory string field "+f.getName());
+								}
+							}
+							
 						}
 					}
 					objectDef.a(tabCount+1);
@@ -280,17 +329,25 @@ public class Yamlcreator {
 			
 				
 			}
+			if(!requiredList.isEmpty())
+			{
+			objectDef.a(tabCount-2);
+			objectDef.a(tabCount);
+			objectDef.a("required:").a(NEWLINE);
 			
 			
-			
-		
+			for(String s:requiredList)
+			{
+			    objectDef.a(tabCount+1).a("- "+s).a(NEWLINE);
+			}
+			}
 		
 			
 			//sqlWriter.write(seq.toString());
 			
 			
 		
-		System.out.println(objectDef.str());	
+		//System.out.println(objectDef.str());	
 		 
 			
 		}catch(Exception e)
@@ -374,12 +431,20 @@ public class Yamlcreator {
 				 
 				Class<?> pojo = pojoHolder.getPojo();
 				 String objectSnakecase =pojo.getSimpleName();
+				 String objectSnakecaseName=Utility.toCamelCase(objectSnakecase);
+				 if(Utility.USEOBJECTINGET)
+				 {
+					 objectSnakecaseName=objectSnakecaseName+".";
+				 }else
+				 {
+					 objectSnakecaseName="";
+				 }
 				Field[] declaredFields = pojo.getDeclaredFields();
 				tabCount=tabCount+1;
 				jsn.a(tabCount);
 				/*String uriName = pojo.getSimpleName().toLowerCase()+"s";*/
 				String uriName =English.plural(pojo.getSimpleName().toLowerCase());
-				System.out.println(uriName);
+				//System.out.println(uriName);
 				jsn.a("/").a(uriName).a(":").a(NEWLINE);
 				tabCount=tabCount+1;
 				jsn.a(tabCount).a("get:").a(NEWLINE);
@@ -388,17 +453,28 @@ public class Yamlcreator {
 				jsn.a(tabCount).a("description: ").a(GET_DESCRIPTION).a(uriName).a(NEWLINE);
 				jsn.a(tabCount).a("tags: ").a(NEWLINE);
 				tabCount=tabCount+1;
-				jsn.a(tabCount).a("- Masters").a(NEWLINE);
+				jsn.a(tabCount).a("- "+Utility.SUBMODULE_NAME).a(NEWLINE);
 				jsn.a(tabCount).a("- "+objectSnakecase).a(NEWLINE);
 				tabCount--;
 				jsn.a(tabCount).a("parameters:").a(NEWLINE);
 				tabCount=tabCount+1;
 				PojoHolder reqPojoHolder=new PojoHolder();
-				reqPojoHolder.loadPojo("org.egov.egf.web.contract.RequestInfo");//change this
+				reqPojoHolder.loadPojo("org.egov.egf.persistence.queue.contract.RequestInfo");//change this
 				Class<?> requestPojo = reqPojoHolder.getPojo();
 				Field[] reqDeclaredFields = requestPojo.getDeclaredFields();
 				 String reqSnakecase =Utility.toCamelCase(requestPojo.getSimpleName());
-				for(Field f:reqDeclaredFields)
+				 if(!Utility.USEOBJECTINGET)
+				 {
+					 reqSnakecase="";
+				 }else
+				 {
+					 reqSnakecase=reqSnakecase+"." ;
+				 }
+					 
+				 //this below line added to ignore request fields in get
+				 //just delete the below line you will be able to add reqinfo in get method
+				 reqDeclaredFields=new Field[0];
+				 for(Field f:reqDeclaredFields)
 				{
 					String name = f.getName();
 					if(name.equals("serialVersionUID"))
@@ -415,7 +491,7 @@ public class Yamlcreator {
 					
 				if(!Utility.findTypes(f).equals("l"))	
 				{
-				jsn.a(tabCount).a("- name: ").a(reqSnakecase).a(".").a(snakeCaseName).a(NEWLINE);
+				jsn.a(tabCount).a("- name: ").a(reqSnakecase).a(snakeCaseName).a(NEWLINE);
 				String swaggerType = Utility.getSwaggerType(f.getType().getSimpleName());
 				jsn.a(tabCount).a("  ").a("type: "). a(swaggerType.split(",")[0]).a(NEWLINE);
 				if(swaggerType.split(",").length>1)
@@ -425,7 +501,7 @@ public class Yamlcreator {
 				}
 				else
 				{
-				jsn.a(tabCount).a("- name: ").a(SPACE).a(reqSnakecase).a(".").a(snakeCaseName).a("id").a(NEWLINE);
+				jsn.a(tabCount).a("- name: ").a(SPACE).a(reqSnakecase).a(snakeCaseName).a("id").a(NEWLINE);
 				String swaggerType = Utility.getSwaggerType("long");
 				jsn.a(tabCount).a("  ").a("type: ").a(SPACE).a(swaggerType.split(",")[0]).a(NEWLINE);
 				if(swaggerType.split(",").length>1)
@@ -458,10 +534,15 @@ public class Yamlcreator {
 					{
 						continue;
 					}
+					//comment below line to accept all params in request
+					/*if(!commonGetReqParamList.contains(f.getName().toLowerCase()))
+					{
+						continue;
+					}*/
 				Boolean skip=false;
 				if(Utility.findTypes(f).equals("l"))	
 				{
-					jsn.a(tabCount).a("- name: ").a(Utility.toCamelCase(objectSnakecase)).a(".").a(snakeCaseName).a("id").a(NEWLINE);
+					jsn.a(tabCount).a("- name: ").a(objectSnakecaseName).a(snakeCaseName).a("id").a(NEWLINE);
 					String swaggerType = Utility.getSwaggerType("long");
 					jsn.a(tabCount).a("  ").a("type: ").a(swaggerType.split(",")[0]).a(NEWLINE);
 					if(swaggerType.split(",").length>1)
@@ -476,7 +557,7 @@ public class Yamlcreator {
 				{
 					if(f.isAnnotationPresent(DrillDown.class) || f.isAnnotationPresent(DrillDownTable.class))
 					{
-					jsn.a(tabCount).a("- name: ").a(Utility.toCamelCase(objectSnakecase)).a(".").a(snakeCaseName).a(NEWLINE);
+					jsn.a(tabCount).a("- name: ").a(objectSnakecaseName).a(snakeCaseName).a(NEWLINE);
 					String swaggerType = Utility.getSwaggerType(f.getType().getSimpleName());
 					jsn.a(tabCount).a("  ").a("type: ").a("object").a(NEWLINE);
 					jsn.a(tabCount+1);
@@ -492,7 +573,7 @@ public class Yamlcreator {
 						skip=true;
 					}
 				}else{
-					jsn.a(tabCount).a("- name: ").a(Utility.toCamelCase(objectSnakecase)).a(".").a(snakeCaseName).a(NEWLINE);
+					jsn.a(tabCount).a("- name: ").a(objectSnakecaseName).a(snakeCaseName).a(NEWLINE);
 					String swaggerType = Utility.getSwaggerType(f.getType().getSimpleName());
 					jsn.a(tabCount).a("  ").a("type: ").a(swaggerType.split(",")[0]).a(NEWLINE);
 					if(swaggerType.split(",").length>1)
@@ -514,10 +595,20 @@ public class Yamlcreator {
 				}
 				
 				PojoHolder pagePojoHolder=new PojoHolder();
-				reqPojoHolder.loadPojo("org.egov.egf.web.contract.Page");//change this
+				reqPojoHolder.loadPojo("org.egov.egf.persistence.queue.contract.Pagination");//change this
 				Class<?> pagePojo = reqPojoHolder.getPojo();
 				Field[] pageDeclaredFields = pagePojo.getDeclaredFields();
+				//uncoment this to display field
+				pageDeclaredFields=new Field[0];
 				 String pageSnakecase =Utility.toCamelCase(pagePojo.getSimpleName());
+				 if(Utility.USEOBJECTINGET)
+				 {
+					 pageSnakecase=pageSnakecase+".";
+					 
+				 }else
+				 {
+					 pageSnakecase="";
+				 }
 				for(Field f:pageDeclaredFields)
 				{
 					String name = f.getName();
@@ -531,7 +622,7 @@ public class Yamlcreator {
 					
 				if(!Utility.findTypes(f).equals("l"))	
 				{
-				jsn.a(tabCount).a("- name: ").a(pageSnakecase).a(".").a(snakeCaseName).a(NEWLINE);
+				jsn.a(tabCount).a("- name: ").a(pageSnakecase).a(snakeCaseName).a(NEWLINE);
 				String swaggerType = Utility.getSwaggerType(f.getType().getSimpleName());
 				jsn.a(tabCount).a("  ").a("type: ") .a(swaggerType.split(",")[0]).a(NEWLINE);
 				if(swaggerType.split(",").length>1)
@@ -541,7 +632,7 @@ public class Yamlcreator {
 				}
 				else
 				{
-				jsn.a(tabCount).a("- name: ").a(pageSnakecase).a(".").a(snakeCaseName).a("id").a(NEWLINE);
+				jsn.a(tabCount).a("- name: ").a(pageSnakecase).a(snakeCaseName).a("id").a(NEWLINE);
 				String swaggerType = Utility.getSwaggerType("long");
 				jsn.a(tabCount).a("  ").a("type: ").a(swaggerType.split(",")[0]).a(NEWLINE);
 				if(swaggerType.split(",").length>1)
@@ -562,9 +653,6 @@ public class Yamlcreator {
 				
 			String res=	getResponse(tabCount, objectSnakecase,METHOD_GET);
 			jsn.a(res);
-				
-			 
-				
 				
 				
 				
@@ -641,7 +729,7 @@ public class Yamlcreator {
 				jsn.a(tabCount).a("description: ").a(POST_DESCRIPTION).a(uriName).a(NEWLINE);
 				jsn.a(tabCount).a("tags: ").a(NEWLINE);
 				tabCount=tabCount+1;
-				jsn.a(tabCount).a("- Masters").a(NEWLINE);
+				jsn.a(tabCount).a("- "+Utility.SUBMODULE_NAME).a(NEWLINE);
 				jsn.a(tabCount).a("- "+objectSnakecase).a(NEWLINE);
 				tabCount--;
 				jsn.a(tabCount).a("parameters:").a(NEWLINE);
@@ -688,7 +776,7 @@ public class Yamlcreator {
 				jsn.a(tabCount).a("description: ").a(PUT_DESCRIPTION).a(uriName).a(NEWLINE);
 				jsn.a(tabCount).a("tags: ").a(NEWLINE);
 				tabCount=tabCount+1;
-				jsn.a(tabCount).a("- Masters").a(NEWLINE);
+				jsn.a(tabCount).a("- "+Utility.SUBMODULE_NAME).a(NEWLINE);
 				jsn.a(tabCount).a("- "+objectSnakecase).a(NEWLINE);
 				tabCount--;
 				jsn.a(tabCount).a("parameters:").a(NEWLINE);

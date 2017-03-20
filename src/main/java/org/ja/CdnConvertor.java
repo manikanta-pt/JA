@@ -8,12 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-import javax.rmi.CORBA.Util;
-
 import org.egov.Utility;
-import org.egov.infstr.services.PersistenceService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 
 
 public class CdnConvertor {

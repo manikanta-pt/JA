@@ -8,8 +8,9 @@ public class MVCCreator {
 		if (args != null && args.length >= 1 && args[0] != null)
 			fullyQualifiedName = args[0];
 		// ddl creator is only for new projects
-		 DdlCreator ddl=new DdlCreator();
-		 ddl.createDdl(fullyQualifiedName);
+		
+		DdlCreator ddl=new DdlCreator();
+		ddl.createDdl(fullyQualifiedName);
 	
 
 		RepositoryCreator rep = new RepositoryCreator();
@@ -18,14 +19,14 @@ public class MVCCreator {
 		ServiceCreator sc = new ServiceCreator();
 		sc.createService(fullyQualifiedName);
 
-		ControllerCreator cc = new ControllerCreator();
+		/*ControllerCreator cc = new ControllerCreator();
 		cc.createController(fullyQualifiedName);
 
 		JspCreator jc = new JspCreator();
 		jc.createJSP(fullyQualifiedName);
 
 		SearchAdaptorAndJSCreator saaj = new SearchAdaptorAndJSCreator();
-		saaj.create(fullyQualifiedName);
+		saaj.create(fullyQualifiedName);*/
 
 	}
 

@@ -15,7 +15,6 @@ import java.util.Map;
 import java.util.Scanner;
 
 import org.egov.PojoHolder;
-import org.springframework.beans.factory.annotation.Autowired;
 
 public class SpringPersistenceQualifier {
 	public static String module;

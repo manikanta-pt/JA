@@ -52,12 +52,12 @@
 			<version>1.0.0.Final</version>
 
 		</dependency>
-<!-- for camel to underscore or space etc -->
-<dependency>
-    <groupId>com.google.guava</groupId>
-    <artifactId>guava</artifactId>
-    <version>20.0</version>
-</dependency>
+		<!-- for camel to underscore or space etc -->
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>20.0</version>
+		</dependency>
 		<dependency>
 			<groupId>org.atteo</groupId>
 			<artifactId>evo-inflector</artifactId>

@@ -3,11 +3,16 @@ package org.egov;
 import static org.egov.Utility.NEWLINE;
 import static org.egov.Utility.TAB;
 
+import java.io.File;
 import java.io.PrintWriter;
 import java.lang.reflect.Field;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
+import javax.persistence.Column;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
@@ -19,14 +24,19 @@ public class DdlCreator {
 	public static void main(String[] args) {
 		
 		DdlCreator rc=new DdlCreator();
-		rc.createDdl("org.egov.process.entity.BillDetails");
+		rc.createDdl("org.egov.egf.persistence.entity.Supplier");
 
 	}
 	
 	public void createDdl(String fullyQualifiedName)
 	{
-		
-		StringBuilder main=new StringBuilder();
+		try {
+			Thread.sleep(1000L);
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		StringBuilder main=new StringBuilder();  
 		StringBuilder seq=new StringBuilder();
 		StringBuilder ref=new StringBuilder();
 		
@@ -34,13 +44,26 @@ public class DdlCreator {
 			pojoHolder.loadPojo(fullyQualifiedName);
 			Class<?> pojo = pojoHolder.getPojo();
 			Field[] declaredFields = pojo.getDeclaredFields();
-			PrintWriter sqlWriter = new PrintWriter(Utility.SQL_FOLDER+"/" +Utility.CONTEXT+"_"+pojo.getSimpleName()+"_ddl.sql", "UTF-8");
+			System.out.println("Note: If a column does not get added and and only comma is present in line then some thing is missing in that field"
+					+ "example if it is referencing object and you missed many to one  etc");
 			
 			System.out.println("   sdfsd"+pojo.getClass().getAnnotation(Table.class));
 			
 			//org.egov.tl.domain.entity.Validity.class;
+			File folder=new File(Utility.SQL_FOLDER);
+			if(!folder.exists())
+			{
+				folder.mkdirs();
+			}
+			SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
 			
-			
+			File fileName=new File(Utility.SQL_FOLDER+"/V"+simpleDateFormat.format(new Date()) +Utility.CONTEXT.replace("/", "__")+"_"+pojo.getSimpleName()+"_ddl.sql");
+			if(!fileName.exists())
+			{
+				fileName.createNewFile();
+			}
+			PrintWriter sqlWriter = new PrintWriter(fileName, "UTF-8");
+		 
 			String tableName=pojo.getAnnotation(Table.class).name();//this is another place of dependency
 			
 			
@@ -48,6 +71,7 @@ public class DdlCreator {
 			seq.append("create sequence "+sequenceName +";"+NEWLINE);
 			
 			main.append("Create table "+tableName +"( "+NEWLINE );
+			main.append(TAB);
 			for(Field f:declaredFields)
 			{
 				if(f.getName().equals("serialVersionUID"))
@@ -56,11 +80,21 @@ public class DdlCreator {
 				{
 					continue;
 				}
-					
+				String fieldname=f.getName();
+				if(f.getAnnotation(Column.class)!=null && 
+						f.getAnnotation(Column.class).name()!=null && !f.getAnnotation(Column.class).name().isEmpty())
+				{
+					fieldname=f.getAnnotation(Column.class).name();
+				}
+				 
 				String egType = Utility.findTypes(f);
+				if(f.getAnnotation(OneToMany.class)!=null)
+				{
+					continue;
+				}
 				if(f.getAnnotation(ManyToOne.class)!=null)
 				{
-					String fieldname=f.getName();
+					
 					String fkTable = f.getType().getSimpleName();
 					 
 					if(f.getAnnotation(JoinColumn.class)!=null)
@@ -81,31 +115,65 @@ public class DdlCreator {
 							+ " FOREIGN KEY ("+fieldname+") REFERENCES "+fkTable+"(id);"+NEWLINE);
 						 
 				}
+			 if(egType.equals("l"))
+				{
+					System.out.println(f.getName());
+					if (f.getType().isEnum()) //it was a earlier
+					{
+						 int len=0;
+						for(Field ff:f.getType().getDeclaredFields())
+						{
+							if(!ff.getName().equals("ENUM$VALUES"))
+							{
+							if(len < ff.getName().length())	
+							{
+								len=ff.getName().length();
+							}
+							}
+						System.out.println(ff.getName().length()+"   "+ff.getName());
+							
+						}
+						main.append(fieldname+" varchar("+len+")");
+					}
+				
+				}
+				
+				
 				else if(egType.equals("s"))
 				{
-					main.append(f.getName()+" varchar(");
+					main.append(fieldname+" varchar(");
 					if(f.getAnnotation(Length.class)!=null)
 					{
 						main.append(f.getAnnotation(Length.class).max()+")");
+					}else
+					{
+						main.append("50)");
+						System.err.println("could not find the length for string field "+fieldname);
 					}
+					
 				
 				}
 				else if(egType.equals("d"))
 				{
-					main.append(f.getName()+" date");
+					main.append(fieldname+" date");
 				}
 				else if(egType.equals("b"))
 				{
-					main.append(f.getName()+" boolean");
+					main.append(fieldname+" boolean");
+				}else if(egType.equals("c"))
+				{
+					main.append(fieldname+" varchar(1)");
 				}
 				else if(egType.equals("i"))
 				{
-					main.append(f.getName()+" bigint");
+					main.append(fieldname+" bigint");
 				}
+				
+				
 				
 				else if(egType.equals("n"))
 				{
-					main.append(f.getName()+" ");
+					main.append(fieldname+" ");
 					if(f.getType().getName().contains("Integer"))
 					{
 						main.append("smallint");
@@ -128,13 +196,17 @@ public class DdlCreator {
 				}
 			    if(f.getAnnotation(NotNull.class)!=null)
 				{
-					main.append("NOT NULL");	
+					main.append(" NOT NULL");	
 				}
 				main.append(","+NEWLINE+TAB);
 				
 			}
-			main.append(" createddate timestamp without time zone,\n\t createdby bigint,\n\t lastmodifieddate timestamp without time zone,\n\t"+
-				   " lastmodifiedby bigint,\n\t version bigint"+NEWLINE+");"+NEWLINE);
+			main.append(TAB);  
+			main.append("createdby bigint,\n\t\t"
+					+"createddate timestamp without time zone,\n\t\t"
+					+ "lastmodifiedby bigint,\n\t\t"
+					+ "lastmodifieddate timestamp without time zone,\n\t\t"
+				   + "version bigint"+NEWLINE+");"+NEWLINE);
 			//add pk
 			main.append("alter table "+tableName+" add constraint pk_"+tableName+" primary key (id);"+NEWLINE);
 			main.append(ref.toString());

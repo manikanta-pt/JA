@@ -10,7 +10,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Scanner;
 
-import org.ja.annotation.DrillDown;
 import org.ja.annotation.DrillDownTable;
 import org.ja.annotation.SearchResult;
 

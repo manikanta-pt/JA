@@ -14,8 +14,12 @@ public class RepositoryCreator {
 
 	public static void main(String[] args) {
 		RepositoryCreator rc=new RepositoryCreator();
-		rc.createRepository("org.egov.egf.entity.Bank");
+		rc.createRepository("org.egov.egf.persistence.entity.BankBranch");
 
+	}
+	public void	create(String fullyQualifiedName) 
+	{
+		createRepository(fullyQualifiedName);
 	}
 
 	public void	createRepository(String fullyQualifiedName) 
@@ -45,6 +49,7 @@ public class RepositoryCreator {
 			writer.write("import org.springframework.data.jpa.repository.JpaRepository;"+Utility.NEWLINE);
 			writer.write("import org.springframework.data.jpa.repository.Query;"+Utility.NEWLINE);
 			writer.write("import org.springframework.stereotype.Repository;"+Utility.NEWLINE);
+			writer.write("import org.springframework.data.jpa.repository.JpaSpecificationExecutor;"+Utility.NEWLINE);
 
 			writer.write(Utility.NEWLINE);
 			writer.write(Utility.NEWLINE);
@@ -61,11 +66,12 @@ public class RepositoryCreator {
 			}
 			 
 			writer.write("@Repository "+Utility.NEWLINE);
-			writer.write("public interface "+fileName+" extends JpaRepository<"+pojo.getSimpleName()+","+idType+"> {"+Utility.NEWLINE);
+			writer.write("public interface "+fileName+" extends JpaRepository<"+pojo.getSimpleName()+","+idType+">,JpaSpecificationExecutor<"+pojo.getSimpleName()+">  {"+Utility.NEWLINE);
 			writer.write(Utility.NEWLINE);
 		   //writing specific methods
 			try {
-				if(pojo.getField("name")!=null)
+				Field declaredField = pojo.getDeclaredField("name");
+				if(declaredField!=null)
 				{
 					writer.write(pojo.getSimpleName()+" "+"findByName(String name);"+Utility.NEWLINE);
 					writer.write(Utility.NEWLINE);
@@ -73,8 +79,9 @@ public class RepositoryCreator {
 			} catch (Exception e) {
 				System.err.println("error while writing findByName api");
 			} 
-			try {	
-				if(pojo.getField("code")!=null)
+			try {
+				Field declaredField = pojo.getDeclaredField("code");
+				if(declaredField!=null)
 				{
 					writer.write(pojo.getSimpleName()+" "+"findByCode(String code);"+Utility.NEWLINE);
 					writer.write(Utility.NEWLINE);

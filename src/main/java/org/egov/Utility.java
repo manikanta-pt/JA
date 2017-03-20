@@ -26,7 +26,7 @@ public class Utility {
 	public static String QUOTE = "\"";
 	public static String SINGLEQUOTE = "'";
 	public static String TAB = "  ";
-	public static String PROJECTHOME = "/home/mani/Workspaces/ms/pgr-services/egov-financials";// only
+	public static String PROJECTHOME = "/home/mani/Workspaces/ms/pgr-services/financials/egf-masters";// only
 																								// change
 																								// this
 																								// rest
@@ -39,8 +39,8 @@ public class Utility {
 	public static String SRCFOLDER = PROJECTHOME + "/src/main/java";
 	public static String CONTROLLER_FOLDER = PROJECT_WEBHOME + "/src/main/java";
 	public static String SQL_FOLDER = PROJECTHOME + "/src/main/resources/db/migration/main";
-	public static String YML_FOLDER = PROJECTHOME;
-	public static String CONTEXT = "/egf";// change this
+	public static String YML_FOLDER = PROJECTHOME+"/docs/contract";
+	public static String CONTEXT = "/egf-masters";// change this
 	public static String MODULEIDENTIFIER = "egf";// change this
 	public static String MODULE_NAME = "Financials Management"; // change this
 	public static String SUBMODULE_NAME = "Masters";// change this
@@ -48,6 +48,9 @@ public class Utility {
 	public static String BEFORE_SEARCH_URL = "search";
 
 	public static final String WEBPACKAGE = "org.egov." + MODULEIDENTIFIER.toLowerCase() + ".web.controller";
+	public static final boolean ADD_VALIDATE = true;
+	public static final boolean USEOBJECTINGET = false;//this will add the object in get method if false only property will be printed
+	public static final boolean USETENANT = true;
 
 	public static void main(String[] args) {
 		// System.out.println(toCamelCase("ComplaintTypeRepository"));
@@ -112,10 +115,13 @@ public class Utility {
 			egFieldType = "b";
 		else if (f.getName().equals("id"))
 			egFieldType = "i";
-		else if (f.getType().isEnum())
-			egFieldType = "a";
+		else if (f.getType().isEnum()) //it was a earlier
+			egFieldType = "e";
+		else if (type.getName().equals("java.lang.Character"))
+			egFieldType = "c";
 		else
 			egFieldType = "n";
+		//System.out.println(egFieldType+"  for "+f.getName());
 		return egFieldType;
 	}
 
@@ -203,6 +209,9 @@ public class Utility {
 		case "character":
 			data = "string,";
 			break;
+		case "bigdecimal":
+                    data = "number,double";
+                    break;
 
 		}
 
@@ -221,8 +230,13 @@ public class Utility {
 		}
 		return mandatory;
 	}
+	
+	 
 
 	public static String getDesc(String name, String objectName) {
+		
+		
+		
 		String desc = "";
 		if (objectName != null) {
 			if(objectName.equals("Page"))
@@ -242,9 +256,15 @@ public class Utility {
 				break;
 			case "active":
 				desc = "Whether " + objectName + " is Active or not. " + "If the value is TRUE, then " + objectName
-						+ " is active,If the value is FALSE then " + objectName + " is inactive";
+						+ " is active,If the value is FALSE then " + objectName + " is inactive,Default value is TRUE";
 				break;
-
+				
+			case "offset":
+				desc = "page number of the "+objectName+", Default value is 0";
+				break;
+			case "pagesize":
+				desc = "Number of records in a per page in  the "+objectName+", Default value is 20";
+				break;
 			default:
 				desc = camelToSpace(name) + " of the " + objectName;
 			}
