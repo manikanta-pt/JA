@@ -12,6 +12,13 @@
 			<groupId>com.thoughtworks.qdox</groupId>
 			<version>1.12</version>
 		</dependency>
+		
+		<dependency>
+			<groupId>org.ja</groupId>
+			<artifactId>Support</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		
 		<dependency>
 			<artifactId>hibernate-validator</artifactId>
 			<groupId>org.hibernate</groupId>
