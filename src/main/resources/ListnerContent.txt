@@ -1,0 +1,26 @@
+if (mastersMap.get("_create") != null) {
+			FundRequest request = objectMapper.convertValue(mastersMap.get("_create"),FundRequest.class);
+			ModelMapper mapper = new ModelMapper();
+			for (FundContract fundContract : request.getFunds()) {
+				Fund domain = mapper.map(fundContract, Fund.class);
+				fundService.save(domain);
+			}
+
+			mastersMap.clear();
+			mastersMap.put("_persisted", request);
+			financialProducer.sendMessage(completedTopic, fundCompletedKey, mastersMap);
+		}
+		if (mastersMap.get("_update") != null) {
+
+			FundRequest request = objectMapper.convertValue(mastersMap.get("_update"),FundRequest.class);
+
+			ModelMapper mapper = new ModelMapper();
+			for (FundContract fundContract : request.getFunds()) {
+				Fund domain = mapper.map(fundContract, Fund.class);
+				fundService.update(domain);
+			}
+			mastersMap.clear();
+			mastersMap.put("_persisted", request);
+			financialProducer.sendMessage(completedTopic, fundCompletedKey, mastersMap);
+		}
+		

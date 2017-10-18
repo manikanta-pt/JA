@@ -19,6 +19,19 @@ public class SB {
 		sb.append(s);
 		return this;
 	}
+	
+	public SB  as(String s)
+	{
+		sb.append(s);
+		sb.append(" ");
+		return this;
+	}
+	
+	public SB  n()
+	{
+		sb.append(Utility.NEWLINE);
+		return this;
+	}
 	public String str()
 	{
 		return sb.toString();
@@ -35,6 +48,23 @@ public class SB {
 		   sb.append(Utility.TAB);
 	   return this;
    }
+  
+   public SB qs(String s)
+   {
+	  sb.append("\""+s);
+	   return this;
+   }
+   public SB qe(String s)
+   {
+	  sb.append(s+"\"");
+	   return this;
+   }
+   public SB q()
+   {
+	  sb.append("\"");
+	   return this;
+   }
+  
   
 
 }

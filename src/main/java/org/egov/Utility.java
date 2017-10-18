@@ -9,6 +9,12 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
 
 import javax.validation.constraints.NotNull;
 
@@ -26,7 +32,7 @@ public class Utility {
 	public static String QUOTE = "\"";
 	public static String SINGLEQUOTE = "'";
 	public static String TAB = "  ";
-	public static String PROJECTHOME = "/home/mani/Workspaces/ms/pgr-services/financials/egf-masters";// only
+	public static String PROJECTHOME = "/home/mani/Workspaces/ms/egov-services/financials/egf-voucher";// only
 																								// change
 																								// this
 																								// rest
@@ -40,17 +46,21 @@ public class Utility {
 	public static String CONTROLLER_FOLDER = PROJECT_WEBHOME + "/src/main/java";
 	public static String SQL_FOLDER = PROJECTHOME + "/src/main/resources/db/migration/main";
 	public static String YML_FOLDER = PROJECTHOME+"/docs/contract";
-	public static String CONTEXT = "/egf-masters";// change this
+	public static String CONTEXT = "/egf-voucher";// change this
 	public static String MODULEIDENTIFIER = "egf";// change this
 	public static String MODULE_NAME = "Financials Management"; // change this
-	public static String SUBMODULE_NAME = "Masters";// change this
+	public static String SUBMODULE_NAME = "voucher";// change this
+	public static String SUBMODULE_IDENTIFIER = "voucher";// change this
 	public static String SEARCH_URL = "ajaxsearch";
 	public static String BEFORE_SEARCH_URL = "search";
 
-	public static final String WEBPACKAGE = "org.egov." + MODULEIDENTIFIER.toLowerCase() + ".web.controller";
+	public static final String WEBPACKAGE = "org.egov." + MODULEIDENTIFIER.toLowerCase()+"." +SUBMODULE_IDENTIFIER+ ".web.controller";
 	public static final boolean ADD_VALIDATE = true;
 	public static final boolean USEOBJECTINGET = false;//this will add the object in get method if false only property will be printed
 	public static final boolean USETENANT = true;
+	
+	public static SimpleDateFormat flywayVersionFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+	public static SimpleDateFormat flywayVersionFormatMin = new SimpleDateFormat("yyyyMMddHHmm");
 
 	public static void main(String[] args) {
 		// System.out.println(toCamelCase("ComplaintTypeRepository"));
@@ -290,7 +300,7 @@ public class Utility {
 			}
 			is.close();
 			fileAsString = sb.toString();
-			System.out.println("Contents : " + fileAsString);
+			//System.out.println("Contents : " + fileAsString);
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -302,4 +312,131 @@ public class Utility {
 
 	}
 
+	public static File createNewFile(String contractFileName) {
+		try {
+			if(contractFileName==null)
+				return null;
+			String dirName = contractFileName.substring(0,contractFileName.lastIndexOf("/")+1);
+			File dir=new File(dirName);
+			if(!dir.exists())
+				dir.mkdirs();
+			File f=new File(contractFileName);
+					 
+				if(!f.exists())
+				{
+					f.createNewFile();
+				}
+				return f;
+		} catch (IOException e) {
+			 throw new RuntimeException(e.getMessage());
+		}
+				 
+	}
+	
+	public static Map<String,String> readComments(String fullyQualifiedName)
+	{
+		Map<String,String> coments=new HashMap<>();
+		List<String> fields=new ArrayList<String>();
+		File f=new File(Utility.SRCFOLDER+"/"+fullyQualifiedName.replace(".", "/")+".java");
+		String fileContents = Utility.readFile(f);
+		PojoHolder pojoHolder=new PojoHolder();
+		pojoHolder.loadPojo(fullyQualifiedName);
+		Field[] declaredFields = pojoHolder.getPojo().getDeclaredFields();
+		
+		
+			
+		
+		 String slComment = "//[^\r\n]*";
+		    String mlComment = "/\\*[\\s\\S]*?\\*/";
+		    String strLit = "\"(?:\\\\.|[^\\\\\"\r\n])*\"";
+		    String chLit = "'(?:\\\\.|[^\\\\'\r\n])+'";
+		    String any = "[\\s\\S]";
+
+		    java.util.regex.Pattern p = java.util.regex.Pattern.compile(String.format("(%s)",  mlComment)
+		    );
+
+		    Matcher m = p.matcher(fileContents);
+
+		    while(m.find()) {
+		      String hit = m.group();
+		      if(hit != null) {
+		    	  hit=hit.replace("*", "").replace("/", "");
+		    	 hit= hit.trim();
+		    	 
+		    	 if(hit.startsWith( pojoHolder.getPojo().getSimpleName()))
+	    		  {
+	    			  coments.put(pojoHolder.getPojo().getSimpleName(), hit);
+	    			  //break;
+	    		  }
+		    	  for(Field field:declaredFields)
+		  		{
+		    		  if(hit.startsWith(field.getName()))
+		    		  {
+		    			  coments.put(field.getName(), hit);
+		    			  break;
+		    		  }
+		  		}
+		       
+		      }
+		      
+		    }
+		    return coments;
+	}
+
+
+
+public static Map<String,String> readCommentsByFullpath(String fullpath,String fullyQualifiedName)
+{
+	Map<String,String> coments=new HashMap<>();
+	List<String> fields=new ArrayList<String>();
+	File f=new File(fullpath+".java");
+	String fileContents = Utility.readFile(f);
+	PojoHolder pojoHolder=new PojoHolder();
+	pojoHolder.loadPojo(fullyQualifiedName);
+	Field[] declaredFields = pojoHolder.getPojo().getDeclaredFields();
+	
+	
+		
+	
+	 	String slComment = "//[^\r\n]*";
+	    String mlComment = "/\\*[\\s\\S]*?\\*/";
+	    String strLit = "\"(?:\\\\.|[^\\\\\"\r\n])*\"";
+	    String chLit = "'(?:\\\\.|[^\\\\'\r\n])+'";
+	    String any = "[\\s\\S]";
+
+	    java.util.regex.Pattern p = java.util.regex.Pattern.compile(String.format("(%s)",  mlComment)
+	    );
+
+	    Matcher m = p.matcher(fileContents);
+
+	    while(m.find()) {
+	      String hit = m.group();
+	      if(hit != null) {
+	    	  hit=hit.replace("*", "").replace("/", "");
+	    	  hit= hit.trim();
+	    	  for(Field field:declaredFields)
+	  		{
+	    		  if(hit.startsWith(field.getName()))
+	    		  {
+	    			  System.out.println(""+field.getName());
+	    			  coments.put(field.getName(), hit);
+	    			  break;
+	    		  }
+	  		}
+	       
+	      }
+	      
+	    }
+	    return coments;
 }
+
+
+public static String removeJaDependency(String contractContent) {
+	 contractContent=contractContent.replaceAll("org.ja.annotation.*?\n", "");
+	 contractContent=contractContent.replaceAll("@DrillDown.*?\n", "");
+	 contractContent=contractContent.replaceAll("@DrillDownTable.*?\n", "");
+	return contractContent;
+}
+
+}
+

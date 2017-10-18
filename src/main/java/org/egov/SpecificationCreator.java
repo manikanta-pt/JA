@@ -2,6 +2,7 @@ package org.egov;
 
 import static org.egov.Utility.NEWLINE;
 
+import java.io.File;
 import java.io.PrintWriter;
 import java.lang.reflect.Field;
 
@@ -28,7 +29,8 @@ public class SpecificationCreator {
 		PrintWriter specificationWriter;
 		try {
 			String specificationPackageDir = Utility.SRCFOLDER+"/org/egov/"+Utility.MODULEIDENTIFIER+"/persistence/specification/";
-			specificationWriter = new PrintWriter(specificationPackageDir+pojo.getSimpleName()+"Specification.java", "UTF-8");
+			File fileName=Utility.createNewFile(specificationPackageDir+pojo.getSimpleName()+"Specification.java");
+			specificationWriter = new PrintWriter(fileName.getCanonicalPath(), "UTF-8");
 	      
 			spec.a("package ").a("org.egov."+Utility.MODULEIDENTIFIER+".persistence.specification").a(";").a(NEWLINE);
 			

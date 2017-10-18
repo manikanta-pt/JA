@@ -30,7 +30,7 @@ public class RestControllerCreator {
 	
 	public static void main(String[] args) {
 		RestControllerCreator rc=new RestControllerCreator();
-		rc.create("org.egov.egf.persistence.entity.BankBranch");
+		rc.create("org.egov.egf.master.domain.model.Bank");
 	}
 	
 	public void create(String fullyQualifiedName)    
@@ -38,32 +38,20 @@ public class RestControllerCreator {
 		pojoHolder.loadPojo(fullyQualifiedName);
 		Class<?> pojo = pojoHolder.getPojo();
 		
-		String refFileName="org.egov.egf.web.controller.BankController";
+		String refFileName="org.egov.egf.master.web.controller.FundController";
 		PrintWriter sqlWriter;
 		try {
-			String contractPackageDir = Utility.SRCFOLDER+"/org/egov/"+Utility.MODULEIDENTIFIER+"/web/controller/";
+			String contractPackageDir = Utility.SRCFOLDER+"/org/egov/"+Utility.MODULEIDENTIFIER+"/"+Utility.SUBMODULE_IDENTIFIER+"/web/controller/";
 			//String contractPackage = "org.egov."+Utility.MODULEIDENTIFIER+".persistence.queue.contract";
 
 			
 			
 			String contractFileName = contractPackageDir+pojo.getSimpleName()+"Controller.java";
-			File ff=new File(contractFileName);
-			try {
-				if(ff.exists())
-				{
-					
-				}else
-				{
-					//ff.mkdirs();
-					ff.createNewFile();
-				}
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			File ff=Utility.createNewFile(contractFileName);
+			
 			sqlWriter = new PrintWriter(contractFileName, "UTF-8");
 	       // String fileName=Utility.SRCFOLDER+"/"+refFileName.replace(".", "/")+".java";
-			String fileName="/home/mani/Workspaces/ms/pgr-services/financials/egf-masters/src/main/java/org/egov/egf/web/controller/BankController.java";
+			String fileName="/home/mani/Workspaces/ms/egov-services/financials/egf-master/src/main/java/org/egov/egf/master/web/controller/FundController.java";
 	        String entityPakage= fullyQualifiedName.substring(0,fullyQualifiedName.lastIndexOf("."));
 	        File file=new File(fileName);
 			//Scanner sc=new Scanner(fileName);
@@ -75,9 +63,10 @@ public class RestControllerCreator {
 		
 		 String contractContent = content;//.replaceAll(maping1, replace);
 		 System.out.println("    now "+contractContent);
-		  contractContent = contractContent.replace("Bank",name);
+		  contractContent = contractContent.replace("Fund",name);
 		 System.out.println(contractContent);
-		 contractContent = contractContent.replace("bank", Utility.toCamelCase(name));
+		 contractContent = contractContent.replace("fund", Utility.toCamelCase(name));
+		 contractContent = contractContent.replace("master", Utility.SUBMODULE_IDENTIFIER);
 		 System.out.println(contractContent);
 	//	 contractContent = contractContent.replace("Banks",English.plural(name));
 		 String ss=name+"s";

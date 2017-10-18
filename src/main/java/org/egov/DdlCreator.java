@@ -7,7 +7,9 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.JoinColumn;
@@ -15,21 +17,43 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 import org.hibernate.validator.constraints.Length;
+import org.ja.annotation.DrillDown;
+import org.ja.annotation.DrillDownTable;
 
 public class DdlCreator {
 
 	PojoHolder pojoHolder=new PojoHolder();
+	private List<String> childList=new ArrayList<String>();
 	public static void main(String[] args) {
 		
 		DdlCreator rc=new DdlCreator();
-		rc.createDdl("org.egov.egf.persistence.entity.Supplier");
+		rc.createDdl("org.egov.egf.master.domain.model.FinancialStatus");
 
+		
 	}
 	
 	public void createDdl(String fullyQualifiedName)
 	{
+		
+		create(fullyQualifiedName);
+		for(int i = 0; i < childList.size(); i++)
+		{
+			
+			create(childList.get(i));
+			
+		 
+		}
+		
+	}
+	
+	public void create(String fullyQualifiedName)
+	{
+		
+		
+		
 		try {
 			Thread.sleep(1000L);
 		} catch (InterruptedException e1) {
@@ -50,22 +74,15 @@ public class DdlCreator {
 			System.out.println("   sdfsd"+pojo.getClass().getAnnotation(Table.class));
 			
 			//org.egov.tl.domain.entity.Validity.class;
-			File folder=new File(Utility.SQL_FOLDER);
-			if(!folder.exists())
-			{
-				folder.mkdirs();
-			}
+			 
 			SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
 			
-			File fileName=new File(Utility.SQL_FOLDER+"/V"+simpleDateFormat.format(new Date()) +Utility.CONTEXT.replace("/", "__")+"_"+pojo.getSimpleName()+"_ddl.sql");
-			if(!fileName.exists())
-			{
-				fileName.createNewFile();
-			}
+			File fileName=Utility.createNewFile(Utility.SQL_FOLDER+"/V"+simpleDateFormat.format(new Date()) +Utility.CONTEXT.replace("/", "__")+"_"+pojo.getSimpleName()+"_ddl.sql");
+		 
 			PrintWriter sqlWriter = new PrintWriter(fileName, "UTF-8");
 		 
-			String tableName=pojo.getAnnotation(Table.class).name();//this is another place of dependency
-			
+			//String tableName=pojo.getAnnotation(Table.class).name();//this is another place of dependency
+			String tableName=Utility.MODULEIDENTIFIER.toLowerCase()+pojo.getSimpleName().toLowerCase();
 			
 			String sequenceName = "seq_"+tableName;
 			seq.append("create sequence "+sequenceName +";"+NEWLINE);
@@ -80,6 +97,19 @@ public class DdlCreator {
 				{
 					continue;
 				}
+				
+				
+				if(f.isAnnotationPresent(DrillDown.class)  )
+				{
+					childList.add(f.getType().getName());
+					 
+				}
+				if(  f.isAnnotationPresent(DrillDownTable.class))
+				{
+					childList.add(Utility.getEnclosingType(f).getName());
+				}
+				
+				
 				String fieldname=f.getName();
 				if(f.getAnnotation(Column.class)!=null && 
 						f.getAnnotation(Column.class).name()!=null && !f.getAnnotation(Column.class).name().isEmpty())
@@ -145,6 +175,9 @@ public class DdlCreator {
 					if(f.getAnnotation(Length.class)!=null)
 					{
 						main.append(f.getAnnotation(Length.class).max()+")");
+					}else if(f.getAnnotation(Size.class)!=null)
+					{
+						main.append(f.getAnnotation(Size.class).max()+")");
 					}else
 					{
 						main.append("50)");
@@ -206,6 +239,7 @@ public class DdlCreator {
 					+"createddate timestamp without time zone,\n\t\t"
 					+ "lastmodifiedby bigint,\n\t\t"
 					+ "lastmodifieddate timestamp without time zone,\n\t\t"
+					+"tenantId varchar(250),\n\t\t"
 				   + "version bigint"+NEWLINE+");"+NEWLINE);
 			//add pk
 			main.append("alter table "+tableName+" add constraint pk_"+tableName+" primary key (id);"+NEWLINE);
@@ -218,6 +252,7 @@ public class DdlCreator {
 			
 			
 			sqlWriter.flush();
+			sqlWriter.close();
 			
 			
 		System.out.println(main.toString());	

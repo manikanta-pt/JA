@@ -11,8 +11,11 @@ import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import javax.rmi.CORBA.Util;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
@@ -38,6 +41,9 @@ public class YamlcreatorGetByPost {
 	PojoHolder pojoHolder=new PojoHolder();
 	private List<String> referencedDetailedObjects=new ArrayList<String>();
 	private static List<String> commonGetReqParamList;
+	private static Map<String,Map<String,String>> commentsMap=new HashMap<>();
+	private static final String commonurl="";
+	private static final String egf_masterurl="";
 
 
 	public static void main(String[] args) {
@@ -50,7 +56,7 @@ public class YamlcreatorGetByPost {
 			rc.create(args[0]);
 		}
 		else
-			rc.create("org.egov.egf.persistence.queue.contract.Pagination");
+			rc.create("org.egov.workflow.web.contract.Task");
 
 	}
 
@@ -185,6 +191,11 @@ public class YamlcreatorGetByPost {
 				po.loadPojo(fullyQualifiedName);
 				pojo=po.getPojo();
 			}
+						  
+			commentsMap.put(pojo.getSimpleName(),Utility.readComments(fullyQualifiedName));
+			System.out.println(commentsMap);
+
+			
 			Field[] declaredFields = pojo.getDeclaredFields();
 
 			String objectSnakecase =pojo.getSimpleName();
@@ -243,15 +254,16 @@ public class YamlcreatorGetByPost {
 						objectDef.a(tabCount+1);
 						objectDef.a("format: ").a("int64").a(NEWLINE);	
 						objectDef.a(tabCount+1);
-						objectDef.a("description: ").a(Utility.getDesc(snakeCaseName,objectSnakecase)).a(NEWLINE);
+						System.out.println(getDesc(f.getName(),pojo.getSimpleName(),tabCount));
+						objectDef.a("description: ").a(getDesc(f.getName(),pojo.getSimpleName(),tabCount)).a(NEWLINE);
 
 					}else if(f.getType().isEnum()){
 
 						objectDef.a(tabCount+1);
 						objectDef.a("type: ").a("string").a(NEWLINE);	
 						objectDef.a(tabCount+1);
-
-						objectDef.a("description: ").a(Utility.getDesc(snakeCaseName,objectSnakecase)).a(NEWLINE);
+						System.out.println(getDesc(f.getName(),pojo.getSimpleName(),tabCount));
+						objectDef.a("description: ").a(getDesc(f.getName(),pojo.getSimpleName(),tabCount)).a(NEWLINE);
 						objectDef.a(tabCount+1);
 						objectDef.a("enum:").a(NEWLINE);
 						//objectDef.a(tabCount+2);
@@ -282,7 +294,7 @@ public class YamlcreatorGetByPost {
 						objectDef.a(tabCount+1);
 						objectDef.a("type:").a(TAB).a("array").a(NEWLINE);	
 						objectDef.a(tabCount+1);
-						objectDef.a("description:").a(TAB).a(Utility.getDesc(snakeCaseName,objectSnakecase)).a(NEWLINE);
+						objectDef.a("description:").a(TAB).a(getDesc(f.getName(),pojo.getSimpleName(),tabCount)).a(NEWLINE);
 						objectDef.a(tabCount+1);
 						objectDef.a("items:").a(NEWLINE);
 						objectDef.a(tabCount+2);
@@ -318,7 +330,9 @@ public class YamlcreatorGetByPost {
 						}
 					}
 					objectDef.a(tabCount+1);
-					objectDef.a("description: ").a(Utility.getDesc(snakeCaseName,objectSnakecase)).a(NEWLINE);
+					System.out.println(getDesc(f.getName(),pojo.getSimpleName(),tabCount));
+					String coment=getDesc(f.getName(),pojo.getSimpleName(),tabCount);
+					objectDef.a("description: ").a(coment).a(NEWLINE);
 
 				}
 
@@ -380,6 +394,33 @@ public class YamlcreatorGetByPost {
 		}
 		return objectDef.str();
 
+	}
+
+	private String getDesc(String name, String simpleName, int tabCount) {
+		String coment ="";
+		
+		
+		if(commentsMap!=null && commentsMap.get(simpleName)!=null)
+		{
+		 coment = commentsMap.get(simpleName).get(name);
+		 if(coment==null)
+		  coment="";
+		 StringBuffer cleanedComent=new StringBuffer();
+			String[] split = coment.split("\n");
+			for(String s:split)
+			{
+				cleanedComent.append(s.trim()+"\n");
+			}
+			cleanedComent.insert(0, "|\n");
+		String tab="";
+		for(int i=0;i<=tabCount+2;i++)
+		{
+			tab=tab+Utility.TAB;
+		}
+		coment=	cleanedComent.toString().replace("\n", "\n"+tab);
+		System.out.println(coment);
+		}
+		return coment;
 	}
 
 	private String getReq_RespDef(Class<?> pojo) {
@@ -500,10 +541,11 @@ public class YamlcreatorGetByPost {
 			jsn.a(tabCount).a("parameters:").a(NEWLINE);
 			tabCount=tabCount+1;
 			PojoHolder reqPojoHolder=new PojoHolder();
-			reqPojoHolder.loadPojo("org.egov.egf.persistence.queue.contract.RequestInfo");//change this
+			reqPojoHolder.loadPojo("org.egov.workflow.web.contract.RequestInfo");//change this
 			Class<?> requestPojo = reqPojoHolder.getPojo();
 			Field[] reqDeclaredFields = requestPojo.getDeclaredFields();
 			String reqSnakecase =Utility.toCamelCase(requestPojo.getSimpleName());
+			commentsMap.put(pojo.getSimpleName(), Utility.readComments(fullyQualifiedName));
 			/* if(!Utility.USEOBJECTINGET)
 				 {
 					 reqSnakecase="";
@@ -602,8 +644,8 @@ public class YamlcreatorGetByPost {
 						jsn.a(tabCount+1);
 						jsn.a("type: ").a("string").a(NEWLINE);	
 						jsn.a(tabCount+1);
-
-						jsn.a("description: ").a(Utility.getDesc(snakeCaseName,objectSnakecase)).a(NEWLINE);
+						System.out.println(getDesc(f.getName(),pojo.getSimpleName(),tabCount));
+						jsn.a("description: ").a(getDesc(f.getName(),pojo.getSimpleName(),tabCount)).a(NEWLINE);
 						jsn.a(tabCount+1);
 						jsn.a("enum:").a(NEWLINE);
 						//objectDef.a(tabCount+2);
@@ -671,8 +713,9 @@ public class YamlcreatorGetByPost {
 				if(!skip)
 				{
 					jsn.a(tabCount).a("  ").a("in: query").a(NEWLINE);
+					System.out.println(getDesc(f.getName(),pojo.getSimpleName(),tabCount));
 
-					jsn.a(tabCount).a("  ").a("description: ").a(Utility.getDesc(f.getName(), objectSnakecase)).a(NEWLINE);
+					jsn.a(tabCount).a("  ").a("description: ").a(getDesc(f.getName(),pojo.getSimpleName(),tabCount)).a(NEWLINE);
 					/*if(Utility.isMandatory(f))
 				jsn.a(tabCount).a("  ").a("required: true").a(NEWLINE);*/
 				}
@@ -699,7 +742,7 @@ public class YamlcreatorGetByPost {
 
 
 			PojoHolder pagePojoHolder=new PojoHolder();
-			reqPojoHolder.loadPojo("org.egov.egf.persistence.queue.contract.Pagination");//change this
+			reqPojoHolder.loadPojo("org.egov.workflow.web.contract.Pagination");//change this
 			Class<?> pagePojo = reqPojoHolder.getPojo();
 			Field[] pageDeclaredFields = pagePojo.getDeclaredFields();
 			//uncoment this to display field
@@ -753,8 +796,9 @@ public class YamlcreatorGetByPost {
 				}
 
 				jsn.a(tabCount).a("  ").a("in: query").a(NEWLINE);
+				System.out.println(getDesc(f.getName(),pojo.getSimpleName(),tabCount));
 
-				jsn.a(tabCount).a("  ").a("description: ").a(Utility.getDesc(f.getName(), "Page")).a(NEWLINE);
+				jsn.a(tabCount).a("  ").a("description: ").a(getDesc(f.getName(),pojo.getSimpleName(),tabCount)).a(NEWLINE);
 				/* if(Utility.isMandatory(f))
 				jsn.a(tabCount).a("  ").a("required: ").a("true").a(NEWLINE);*/
 				/*else

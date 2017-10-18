@@ -73,7 +73,8 @@ public class PojoHolder {
 			JavaDocBuilder builder = new JavaDocBuilder();
 
 			builder.addSource(new FileReader( fileFullPath  ));
-
+			
+			
 
 			JavaSource src = builder.getSources()[0];
 			imports = src.getImports();

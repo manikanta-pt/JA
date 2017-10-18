@@ -1,0 +1,2 @@
+ @Value("${kafka.topics.egf.masters.financialconfiguration.completed.key}")
+ private String financialconfigurationCompletedKey;

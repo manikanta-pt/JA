@@ -1,0 +1,22 @@
+public FundContract findById(FundContract fundContract) {
+
+		String url = String.format("%s%s", hostUrl, SEARCH_URL);
+		StringBuffer content = new StringBuffer();
+		if (fundContract.getId() != null) {
+			content.append("id=" + fundContract.getId());
+		}
+
+		if (fundContract.getTenantId() != null) {
+			content.append("&tenantId=" + fundContract.getTenantId());
+		}
+		url = url + content.toString();
+		FundResponse result = restTemplate.postForObject(url, null, FundResponse.class);
+			
+
+		if (result.getFunds() != null && result.getFunds().size() == 1) {
+			return result.getFunds().get(0);
+		} else {
+			return null;
+		}
+
+	}

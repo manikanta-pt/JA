@@ -61,26 +61,29 @@ public class JspCreator {
 			editjsp = new StringBuilder();
 			resultjsp = new StringBuilder();
 			viewJsp = new StringBuilder();
+<<<<<<< Updated upstream
 			formJsp = new StringBuilder();
 			searchJsp = new StringBuilder();
 			searchResultJsp = new StringBuilder();
 
+=======
+			formJsp=new StringBuilder();
+			searchJsp=new StringBuilder();
+			searchResultJsp=new StringBuilder();
+>>>>>>> Stashed changes
 			Class<?> pojo = pojoHolder.getPojo();
 
-			addTileEntry(pojo);
+		//	addTileEntry(pojo);
 			System.out.println(tiles);
 			addLabelsEntry(pojo);
 			System.out.println(labels);
 			addMessagesEntry(pojo);
 			makeNewJsp(pojo);
-			makeResultJsp(pojo);
-			makeViewJsp(pojo);
-			makeEditJsp(pojo);
-			makeSearchJSP(pojo);
-			makeDrilldownJsp(pojo);
+			
 
 			System.out.println(newjsp);
 
+<<<<<<< Updated upstream
 			if (!Utility.WRITETOTEMPFILES) {
 				if (tiles.length() > 0) {
 					File tilesFileName = new File(
@@ -91,6 +94,11 @@ public class JspCreator {
 					tilesFile.writeBytes("\n</tiles-definitions>");
 					tilesFile.close();
 				}
+=======
+			if(!Utility.WRITETOTEMPFILES)
+			{
+				 
+>>>>>>> Stashed changes
 
 				if (labels.length() > 0) {
 					File labelsFileName = new File(
@@ -318,7 +326,7 @@ public class JspCreator {
 			if (f.getType().getSimpleName().equals(baseModelName))
 				continue;
 
-			Required required = f.getDeclaredAnnotation(org.egov.infra.persistence.validator.annotation.Required.class);
+			//Required required = f.getDeclaredAnnotation(org.egov.infra.persistence.validator.annotation.Required.class);
 			NotBlank notblank = f.getDeclaredAnnotation(org.hibernate.validator.constraints.NotBlank.class);
 			NotNull notnull = f.getDeclaredAnnotation(javax.validation.constraints.NotNull.class);
 			Length length = f.getDeclaredAnnotation(org.hibernate.validator.constraints.Length.class);
@@ -328,9 +336,16 @@ public class JspCreator {
 			// type = f.getType();
 			egFieldType = Utility.findTypes(f);
 
+<<<<<<< Updated upstream
 			if (required != null || notblank != null || notnull != null) {
 				mandatory = true;
 				System.out.println(mandatory + "-----------" + f.getName());
+=======
+			if(notblank!=null || notnull!=null)
+			{
+				mandatory=true;
+				System.out.println(mandatory+"-----------"+f.getName());
+>>>>>>> Stashed changes
 			}
 			table.a("<th><spring:message code=\"lbl." + f.getName().toLowerCase() + "\" />");
 			if (mandatory) {
@@ -367,7 +382,7 @@ public class JspCreator {
 			if (ignore != null)
 				continue;
 
-			Required required = f.getDeclaredAnnotation(org.egov.infra.persistence.validator.annotation.Required.class);
+			//Required required = f.getDeclaredAnnotation(org.egov.infra.persistence.validator.annotation.Required.class);
 			NotBlank notblank = f.getDeclaredAnnotation(org.hibernate.validator.constraints.NotBlank.class);
 			NotNull notnull = f.getDeclaredAnnotation(javax.validation.constraints.NotNull.class);
 			Length length = f.getDeclaredAnnotation(org.hibernate.validator.constraints.Length.class);
@@ -377,9 +392,16 @@ public class JspCreator {
 			// type = f.getType();
 			egFieldType = Utility.findTypes(f);
 
+<<<<<<< Updated upstream
 			if (required != null || notblank != null || notnull != null) {
 				mandatory = true;
 				System.out.println(mandatory + "-----------" + f.getName());
+=======
+			if( notblank!=null || notnull!=null)
+			{
+				mandatory=true;
+				System.out.println(mandatory+"-----------"+f.getName());
+>>>>>>> Stashed changes
 			}
 			SB s = new SB();
 
@@ -484,7 +506,7 @@ public class JspCreator {
 			if (ignore != null)
 				continue;
 
-			Required required = f.getDeclaredAnnotation(org.egov.infra.persistence.validator.annotation.Required.class);
+			//Required required = f.getDeclaredAnnotation(org.egov.infra.persistence.validator.annotation.Required.class);
 			NotBlank notblank = f.getDeclaredAnnotation(org.hibernate.validator.constraints.NotBlank.class);
 			NotNull notnull = f.getDeclaredAnnotation(javax.validation.constraints.NotNull.class);
 			Length length = f.getDeclaredAnnotation(org.hibernate.validator.constraints.Length.class);
@@ -494,9 +516,16 @@ public class JspCreator {
 			// type = f.getType();
 			egFieldType = Utility.findTypes(f);
 
+<<<<<<< Updated upstream
 			if (required != null || notblank != null || notnull != null) {
 				mandatory = true;
 				System.out.println(mandatory + "-----------" + f.getName());
+=======
+			if(notblank!=null || notnull!=null)
+			{
+				mandatory=true;
+				System.out.println(mandatory+"-----------"+f.getName());
+>>>>>>> Stashed changes
 			}
 			SB s = new SB();
 
@@ -765,7 +794,7 @@ public class JspCreator {
 			if (ignore != null)
 				continue;
 
-			Required required = f.getDeclaredAnnotation(org.egov.infra.persistence.validator.annotation.Required.class);
+			//Required required = f.getDeclaredAnnotation(org.egov.infra.persistence.validator.annotation.Required.class);
 			NotBlank notblank = f.getDeclaredAnnotation(org.hibernate.validator.constraints.NotBlank.class);
 			NotNull notnull = f.getDeclaredAnnotation(javax.validation.constraints.NotNull.class);
 			Length length = f.getDeclaredAnnotation(org.hibernate.validator.constraints.Length.class);
@@ -775,9 +804,16 @@ public class JspCreator {
 			// type = f.getType();
 			egFieldType = Utility.findTypes(f);
 
+<<<<<<< Updated upstream
 			if (required != null || notblank != null || notnull != null) {
 				mandatory = true;
 				System.out.println(mandatory + "-----------" + f.getName());
+=======
+			if(notblank!=null || notnull!=null)
+			{
+				mandatory=true;
+				System.out.println(mandatory+"-----------"+f.getName());
+>>>>>>> Stashed changes
 			}
 			SB s = new SB();
 
@@ -869,6 +905,7 @@ public class JspCreator {
 		return formcontent;
 	}
 
+<<<<<<< Updated upstream
 	private void makeEditJsp(Class<?> pojo) {
 		String simpleName = pojo.getSimpleName();
 		editjsp.append("<%@ page contentType=\"text/html;charset=UTF-8\" language=\"java\"%>" + NEWLINE);
@@ -901,6 +938,10 @@ public class JspCreator {
 				+ Utility.toCamelCase(simpleName) + "Helper.js'/>\"></script> ");
 
 	}
+=======
+
+
+>>>>>>> Stashed changes
 
 	private void addMessagesEntry(Class<?> pojo) {
 		messages.append(
@@ -960,6 +1001,7 @@ public class JspCreator {
 
 	}
 
+<<<<<<< Updated upstream
 	public void makeSearchJSP(Class<?> pojo) {
 		String simpleName = pojo.getSimpleName();
 		searchJsp.append("<%@ page contentType=\"text/html;charset=UTF-8\" language=\"java\"%>" + NEWLINE);
@@ -1190,4 +1232,7 @@ public class JspCreator {
 		} else
 			return entry.toString();
 	}
+=======
+
+>>>>>>> Stashed changes
 }

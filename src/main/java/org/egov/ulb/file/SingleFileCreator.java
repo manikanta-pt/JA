@@ -27,7 +27,7 @@ public class SingleFileCreator {
 		  String s = currentRelativePath.toAbsolutePath().toString();
 		  System.out.println("Current relative path is: " + s);	
 		  String CurrfilePath = "/src/main/java/org/egov/ulb/file/";
-		  String content = "select :schemaName.load_coa(); select :schemaName.delete_coa();";
+		  String content = "select tenatid,count(*) from :schemaName.egf_accountcodepurpose;";
 	  
 	  FileReader reader=new FileReader(s+"/src/main/java/org/egov/ulb/"+"ulbnames.txt");
 	  BufferedReader br=new BufferedReader(reader);
